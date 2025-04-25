@@ -162,11 +162,12 @@ export default async function sendAlert(type, data) {
 
     await channel.send({ content: content, embeds: [embed], components: [buttons] });
 }
-
-try {
-    client.login(config.discord.botAuthToken);
-} catch (error) {
-    logError(error.stack.toString());
-    console.log(error);
-    throw error;
-}
+setTimeout(() => {
+    try {
+        client.login(config.discord.botAuthToken);
+    } catch (error) {
+        logError(error.stack.toString());
+        console.log(error);
+        throw error;
+    }
+}, 5000);

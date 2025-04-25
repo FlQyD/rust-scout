@@ -5,6 +5,7 @@ import config from "./config/config.js";
 import fs from 'fs';
 import sendAlert from "./modules/discord/discordBot.js";
 import { altCheckProcess } from "./modules/battleMetrics/altCheckProcess.js";
+import checkConfig from "./modules/misc/checkConfig.js";
 
 if (!fs.existsSync("./data")) fs.mkdirSync("./data");
 
@@ -15,6 +16,8 @@ const hourRequestQueue = [];
 
 warmUp();
 async function warmUp() {
+    await checkConfig();
+
     requestHours();
     altChecker();
     garbageCollector();
@@ -212,7 +215,7 @@ function loadCore() {
         if (data === "") return { players: {}, watchlist: {}, lastProcessed: 0, notifications: { massReportedAbusive: [], massReportedCheating: [], susCheating: [] } };
         return JSON.parse(data);
     } catch (error) {
-        console.error(error);
+        console.error(`Core loading failed. Regenerating an empty core.\n  ${error.message}`);
         return { players: {}, watchlist: {}, lastProcessed: 0, notifications: { massReportedAbusive: [], massReportedCheating: [], susCheating: [] } }
     }
 }
@@ -222,7 +225,7 @@ function loadAltCheck() {
         if (data === "") return { playerData: {}, ignoreList: {} };
         return JSON.parse(data);
     } catch (error) {
-        console.error(error);
+        console.error(`AltCheck loading failed. Regenerating an empty core.\n  ${error.message}`);
         return { playerData: {}, ignoreList: {} };
     }
 }
@@ -318,9 +321,8 @@ function removerItemFromArray(array, itemToRemove) {
 
 export async function logError(text) {
     try {
-        const now = new Date(Date.now()).toISOString();
         await new Promise((res, rej) => {
-            fs.appendFile("./error.log", `${now}\n${text}\n\n`, (err) => {
+            fs.appendFile("./error.log", `${text}\n\n`, (err) => {
                 if (err) return rej(err);
                 return res();
             });
@@ -329,11 +331,16 @@ export async function logError(text) {
         console.error(error);
     }
 }
+function getTimeString() {
+    return new Date(Date.now()).toISOString().substring(0, 19).replace("T", " | ")
+}
+
+
 
 process.on('uncaughtException', async error => {
     try {
-        await logError(error.stack.toString());
-        console.error(error);
+        await logError(`${getTimeString()} | ${error.stack.toString()}`);
+        console.error(`${getTimeString()} | ${error.message}`);
     } catch (loggingError) {
         console.error('Failed to log error:', loggingError);
     } finally {
