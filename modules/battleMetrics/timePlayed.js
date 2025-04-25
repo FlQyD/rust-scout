@@ -1,7 +1,9 @@
 export default async function timePlayed(playerId) {
+
+    let resp;
     try {        
-        const data = await fetch("https://api.battlemetrics.com/players/"+playerId+"?include=server");    
-        const response = await data.json();
+        resp = await fetch("https://api.battlemetrics.com/players/"+playerId+"?include=server");    
+        const data = await resp.json();
         const servers = response.included;
         let playTime = 0;
         
@@ -18,6 +20,9 @@ export default async function timePlayed(playerId) {
         });
         return {timePlayed: playTime, extraTime: extraTime};
     } catch (error) {
+        if (resp.status === 200) return {timePlayed: "error", extraTime: 60000}; //Private Profile
+
+        //Fetch failed
         console.error("ERROR PLAYERID: ",playerId, "\n",error);
         return {timePlayed: "error", extraTime: 60000};
     }
