@@ -10,7 +10,7 @@ export default async function requestAndProcessActivity(core) {
 
         return processData(resp.data, core);
     } catch (error) {
-        console.log(error);
+        console.error(error);
     }
 }
 
