@@ -11,12 +11,19 @@ if (!fs.existsSync("./data")) fs.mkdirSync("./data");
 
 export const core = loadCore();
 export const altCheck = loadAltCheck();
+export const alerts = loadAlerts();
+
 const altCheckQueue = [];
 const hourRequestQueue = [];
 
 warmUp();
 async function warmUp() {
     await checkConfig();
+
+    const player = core.players[71736225];
+    checkPlayerIfAlertIsNeeded(player, core.lastProcessed);
+
+    resetNotificationSettings();
 
     requestHours();
     altChecker();
@@ -36,7 +43,18 @@ async function warmUp() {
     await new Promise(r => { setTimeout(() => { r() }, 2000); })
     main();
 }
+function resetNotificationSettings() {
+    const prevNotifications = JSON.parse(JSON.stringify(core.notifications));
 
+    const newNotifications = alerts.map(alert => alert.id);
+    const newCoreNotificationObject = {}
+
+    newNotifications.forEach(alert => {
+        newCoreNotificationObject[alert] = prevNotifications[alert] ? [...prevNotifications[alert]] : [];
+    })
+    
+    core.notifications = newCoreNotificationObject;    
+}
 async function main() {
     while (true) {
         await requestAndProcessActivity(core);
@@ -104,11 +122,7 @@ function newPlayerProfile(bmId, steamId, name) {
             cheat: [],
             toxic: [],
         },
-        lastAlerts: {
-            susCheating: 0,
-            massReportedCheating: 0,
-            massReportedAbusive: 0,
-        },
+        lastAlerts: {},
         lastUpdated: 0,
     };
 }
@@ -212,11 +226,11 @@ export function removePlayerFromTheWatchList(bmId) {
 function loadCore() {
     try {
         const data = fs.readFileSync("./data/core.json", "utf8");
-        if (data === "") return { players: {}, watchlist: {}, lastProcessed: 0, notifications: { massReportedAbusive: [], massReportedCheating: [], susCheating: [] } };
+        if (data === "") return { players: {}, watchlist: {}, lastProcessed: 0, notifications: {} };
         return JSON.parse(data);
     } catch (error) {
         console.error(`Core loading failed. Regenerating an empty core.\n  ${error.message}`);
-        return { players: {}, watchlist: {}, lastProcessed: 0, notifications: { massReportedAbusive: [], massReportedCheating: [], susCheating: [] } }
+        return { players: {}, watchlist: {}, lastProcessed: 0, notifications: {} }
     }
 }
 function loadAltCheck() {
@@ -225,10 +239,19 @@ function loadAltCheck() {
         if (data === "") return { playerData: {}, ignoreList: {} };
         return JSON.parse(data);
     } catch (error) {
-        console.error(`AltCheck loading failed. Regenerating an empty core.\n  ${error.message}`);
+        console.error(`AltCheck loading failed. Regenerating an empty AltCheck.\n  ${error.message}`);
         return { playerData: {}, ignoreList: {} };
     }
 }
+function loadAlerts() {
+    try {
+        const data = fs.readFileSync("./config/alertConfig.json");
+        return JSON.parse(data);
+    } catch (error) {
+        throw new Error(`alertConfig.json couldn't be loaded: ${error.message}`);
+    }
+}
+
 let coreSaving = false;
 function saveCore() {
     try {
