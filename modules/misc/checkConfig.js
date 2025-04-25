@@ -1,5 +1,5 @@
 import config from "../../config/config.js";
-import { Client, Events, GatewayIntentBits, EmbedBuilder, ActionRowBuilder } from 'discord.js';
+import { Client, GatewayIntentBits } from 'discord.js';
 
 async function checkConfig() {
     await checkForCredentials();
@@ -54,7 +54,6 @@ async function checkDiscordBotAuthAndPrivileges() {
 
         } catch (error) {
             throw new Error(`DISCORD: ${error.message}`);
-            
         } finally {
             client.destroy();
         }
