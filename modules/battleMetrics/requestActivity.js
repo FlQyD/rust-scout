@@ -24,6 +24,7 @@ async function processData(activityMessages, core) {
         if (core.lastProcessed >= messageSent) return;
 
         const type = activityMessage.attributes.messageType;
+        
         switch (type) {
             case "event:addPlayer": //Player joined
                 updatePlayer(
@@ -35,6 +36,9 @@ async function processData(activityMessages, core) {
                 );
                 break;
             case "rustLog:playerDeath:PVP": //Player killed
+                if (activityMessage.attributes.data.player_id === undefined) break;
+                if (activityMessage.attributes.data.killer_id === undefined) break;
+                
                 updatePlayer(
                     String(activityMessage.attributes.data.player_id),
                     String(activityMessage.attributes.data.steamID),

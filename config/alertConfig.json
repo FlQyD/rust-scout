@@ -4,9 +4,9 @@
         "name": "MASS REPORTED - CHEATING",
         "triggers": [
             {
-                "value": "recentCheatingReports",
+                "value": "recentCheatReports",
                 "condition": {
-                    "action": "grater-than",
+                    "action": "greater-than",
                     "value": 3
                 }
             }
@@ -28,7 +28,7 @@
             {
                 "value": "recentAbusiveReports",
                 "condition": {
-                    "action": "grater-than",
+                    "action": "greater-than",
                     "value": 3
                 }
             }
@@ -48,10 +48,17 @@
         "name": "SUS ALERT - CHEATING",
         "triggers": [
             {
-                "value": "kdRatio",
+                "value": "recentKd",
                 "condition": {
-                    "action": "grater-than",
+                    "action": "greater-than",
                     "value": 6
+                }
+            },
+            {
+                "value": "hours",
+                "condition": {
+                    "action": "less-than",
+                    "value": 150
                 }
             }
         ],

@@ -20,9 +20,9 @@ warmUp();
 async function warmUp() {
     await checkConfig();
 
-    const player = core.players[71736225];
+    const player = core.players[1147207481];
     checkPlayerIfAlertIsNeeded(player, core.lastProcessed);
-
+    
     resetNotificationSettings();
 
     requestHours();
@@ -93,6 +93,8 @@ export function updatePlayer(bmId, steamId, name, action, data) {
         return;
     }
     if (action === "kill") {
+        console.log(data);
+        
         if (data.killedBmId == undefined) return;
         player.kills.push({ killed: data.killedBmId, timestamp: data.timestamp });
     }

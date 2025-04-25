@@ -1,4 +1,4 @@
-# Silent Watcher
+# Rust Scout
 A Node.js application, that logs suspicious users based on BattleMetrics activity for rust servers.
 
 ## Notifications:
@@ -44,4 +44,4 @@ After you are done generating a discord application and a discord BOT as well fo
 
 
 ## Start: 
- - `npm run start`: Start a pm2 process with the name "silentWatcher".
+ - `npm run start`: Start a pm2 process with the name "rustScout".
