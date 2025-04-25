@@ -13,9 +13,7 @@ export default async function getIpLinkedGameBannedAlts(bmId) {
             },
             body: payload
         })
-        console.log(response);
         const data = await response.json();
-        console.log(JSON.stringify(data));
     } catch (error) {
         console.log(error);
         return "error"

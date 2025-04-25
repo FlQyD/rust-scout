@@ -32,7 +32,8 @@ export default async function checkPlayerIfAlertIsNeeded(player, now) {
         recentKills, recentDeaths, recentKd,
         recentUniqueKills, recentUniqueDeaths,
         recentCheatReports, recentAbusiveReports,
-        recentUniqueCheatReports, recentUniqueAbusiveReports
+        recentUniqueCheatReports, recentUniqueAbusiveReports,
+        hours: player.hours
     }
 
     //Check if any alert should be triggered
@@ -41,27 +42,28 @@ export default async function checkPlayerIfAlertIsNeeded(player, now) {
         let triggered = true;
         for (const trigger of alert.triggers) {
             const currentValue = playerData[trigger.value]
-
-            if (trigger.action === "greater-than" && currentValue <= trigger.value) {
+            
+            if (trigger.condition.action === "greater-than" && currentValue <= trigger.condition.value) {
                 triggered = false;
                 break;
             }
-            if (triggered && trigger.action === "less-than" && currentValue >= trigger.value) {
+            if (triggered && trigger.condition.action === "less-than" && currentValue >= trigger.condition.value) {
                 triggered = false;
                 break;
             }
-            if (triggered && trigger.action === "greater-than-or-equal" && currentValue < trigger.value) {
+            if (triggered && trigger.condition.action === "greater-than-or-equal" && currentValue < trigger.condition.value) {
                 triggered = false;
                 break;
             }
-            if (triggered && trigger.action === "less-than-or-equal" && currentValue > trigger.value) {
+            if (triggered && trigger.condition.action === "less-than-or-equal" && currentValue > trigger.condition.value) {
                 triggered = false;
                 break;
             }
-        }
+        }        
         if (!triggered) continue;
 
         player.lastAlerts[alert.id] = Date.now();
+        
         sendAlert(alert.id, playerData);
     }
 }
