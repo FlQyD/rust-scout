@@ -8,7 +8,7 @@
   "description": "A Node.js application that tracks player activity based on battlemetics Activity api, and sends notifications about various players.",
   "main": "main.js",
   "scripts": {
-    "start": "pm2 start main.js --name silentWatcher",
+    "start": "pm2 start main.js --name rustScout",
     "dev": "node --watch main.js"
   },
   "keywords": [
