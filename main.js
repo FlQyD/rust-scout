@@ -3,7 +3,7 @@ import timePlayed from "./modules/battleMetrics/timePlayed.js";
 import checkPlayerIfAlertIsNeeded from "./modules/misc/checkAndSendAlert.js";
 import config from "./config/config.js";
 import fs from 'fs';
-import sendAlert from "./modules/discord/discordBot.js";
+import { sendAlert } from "./modules/discord/discordBot.js";
 import { altCheckProcess } from "./modules/battleMetrics/altCheckProcess.js";
 import checkConfig from "./modules/misc/checkConfig.js";
 
@@ -13,7 +13,7 @@ export const core = loadCore();
 export const altCheck = loadAltCheck();
 export const alerts = loadAlerts();
 
-const altCheckQueue = [];
+const altCheckQueue = ["1186743333"];
 const hourRequestQueue = [];
 
 warmUp();
@@ -48,17 +48,11 @@ function resetNotificationSettings() {
     newNotifications.forEach(alert => {
         newCoreNotificationObject[alert] = prevNotifications[alert] ? [...prevNotifications[alert]] : [];
     })
-    
-    core.notifications = newCoreNotificationObject;    
+
+    core.notifications = newCoreNotificationObject;
 }
 
 async function main() {
-    setTimeout(() => {
-        const player = core.players[1186743333];
-        checkPlayerIfAlertIsNeeded(player, core.lastProcessed);
-    }, 3000);
-
-
     while (true) {
         await requestAndProcessActivity(core);
         await new Promise(r => { setTimeout(() => { r() }, 25000); })
@@ -95,7 +89,7 @@ export function updatePlayer(bmId, steamId, name, action, data) {
         checkIfPlayerHasBeenBackgroundChecked(player.bmId);
         return;
     }
-    if (action === "kill") {        
+    if (action === "kill") {
         if (data.killedBmId == undefined) return;
         player.kills.push({ killed: data.killedBmId, timestamp: data.timestamp });
     }
@@ -188,39 +182,56 @@ async function requestHoursForPlayer(playerId) {
 async function altChecker() {
     while (true) {
         await new Promise(r => { setTimeout(() => { r() }, 5000); })
+
         const player = altCheckQueue.shift();
         if (player == undefined) continue;
         if (altCheck.playerData[player]) continue;
 
+        console.log("ALT CHECKING: ", player);
+        
         const outcome = await altCheckProcess(player);
         if (outcome === "error") continue;
 
         outcome.timestamp = Date.now();
         altCheck.playerData[player] = outcome;
-        if (outcome.possibleAlts > 0) sendAlert("possibleRgbAccountFound", {
-            bmId: outcome.main.bmId,
-            name: outcome.main.names[0],
-            numberOfPossibleAlts: outcome.possibleAlts
-        })
+
+        if (outcome.possibleAlts === 0) return; //No alts was found
+
+        const data = {
+            steamId: core.players[player]?.steamId,
+            bmId: core.players[player]?.bmId,
+            name: core.players[player]?.name,
+            count: outcome.possibleAlts,
+        }
+        const content = "";
+
+        sendAlert(content, alerts.rgbFound, data);
     }
 }
 
-function checkIfPlayerIsOnTheWatchList(player) {
-    const playerId = player.bmId;
-    if (!core.watchlist[playerId]) return false; //Player is not on the watchlist;
-
-    const data = JSON.parse(JSON.stringify(core.watchlist[playerId]));
-    data.name = player.name;
-    data.bmId = player.bmId;
-    data.steamId = player.steamId;
-    sendAlert("watchListAlert", data);
-}
 function checkIfPlayerHasBeenBackgroundChecked(bmId) {
     if (altCheck.ignoreList[bmId]) return;     //On the ignore list
     if (altCheck.playerData[bmId]) return;    //Already checked
     if (altCheckQueue.includes(bmId)) return; //Waiting to be checked
 
     altCheckQueue.push(bmId);
+}
+function checkIfPlayerIsOnTheWatchList(player) {
+    const playerId = player.bmId;
+    if (!core.watchlist[playerId]) return false; //Player is not on the watchlist;
+
+    //SEND WATCHLIST ALERT
+
+    const data = JSON.parse(JSON.stringify(player));
+    data.note = core.watchlist[playerId].note;
+    data.adminName = core.watchlist[playerId].adminName;
+    data.adminAvatar = core.watchlist[playerId].adminAvatar;
+
+    const content = core.watchlist[playerId].notify === "only-me" ?
+        core.watchlist[playerId].notificationList.map(account => `<@${account}>`).join(" ") :
+        `<&${config.discord.staffRoleId}>`;
+
+    sendAlert(content, alerts.watchlist, data);
 }
 export function removePlayerFromTheWatchList(bmId) {
     delete core.watchlist[bmId];
@@ -292,7 +303,7 @@ async function garbageCollector() {
 }
 function deleteOldPlayerData() {
     const barrier = core.lastProcessed - 36 * 60 * 60 * 1000;
-    const dataBarrier = core.lastProcessed - 12 * 60 * 60 *1000;
+    const dataBarrier = core.lastProcessed - 12 * 60 * 60 * 1000;
 
     for (const playerId in core.players) {
 
@@ -342,7 +353,6 @@ function deleteOldAltData() {
 
 function filterOldDataFromArray(array, barrier) {
     const newArray = array.filter(item => item.timestamp > barrier);
-    if (array.length > 2) console.log(`GC: ${array.length} | ${newArray.length}`);
     return newArray;
 }
 function removerItemFromArray(array, itemToRemove) {
