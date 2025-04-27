@@ -42,7 +42,7 @@ async function warmUp() {
 function resetNotificationSettings() {
     const prevNotifications = JSON.parse(JSON.stringify(core.notifications));
 
-    const newNotifications = alerts.map(alert => alert.id);
+    const newNotifications = alerts.customs.map(alert => alert.id);
     const newCoreNotificationObject = {}
 
     newNotifications.forEach(alert => {
@@ -54,7 +54,7 @@ function resetNotificationSettings() {
 
 async function main() {
     setTimeout(() => {
-        const player = core.players[1147207481];
+        const player = core.players[1186743333];
         checkPlayerIfAlertIsNeeded(player, core.lastProcessed);
     }, 3000);
 
@@ -292,6 +292,8 @@ async function garbageCollector() {
 }
 function deleteOldPlayerData() {
     const barrier = core.lastProcessed - 36 * 60 * 60 * 1000;
+    const dataBarrier = core.lastProcessed - 12 * 60 * 60 *1000;
+
     for (const playerId in core.players) {
 
         const player = core.players[playerId]
@@ -302,10 +304,10 @@ function deleteOldPlayerData() {
             continue
         }
 
-        player.kills = filterOldDataFromArray(player.kills, barrier);
-        player.deaths = filterOldDataFromArray(player.deaths, barrier);
-        player.reports.cheat = filterOldDataFromArray(player.reports.cheat, barrier);
-        player.reports.toxic = filterOldDataFromArray(player.reports.toxic, barrier);
+        player.kills = filterOldDataFromArray(player.kills, dataBarrier);
+        player.deaths = filterOldDataFromArray(player.deaths, dataBarrier);
+        player.reports.cheat = filterOldDataFromArray(player.reports.cheat, dataBarrier);
+        player.reports.toxic = filterOldDataFromArray(player.reports.toxic, dataBarrier);
     }
 }
 function deleteOldWatchlistData() {
@@ -339,7 +341,9 @@ function deleteOldAltData() {
 }
 
 function filterOldDataFromArray(array, barrier) {
-    return array.filter(item => item.timestamp > barrier);
+    const newArray = array.filter(item => item.timestamp > barrier);
+    if (array.length > 2) console.log(`GC: ${array.length} | ${newArray.length}`);
+    return newArray;
 }
 function removerItemFromArray(array, itemToRemove) {
     return array.filter(item => item !== itemToRemove);

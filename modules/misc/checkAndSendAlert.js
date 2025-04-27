@@ -12,8 +12,7 @@ import sendAlert, { sendDynamicAlert } from "../discord/discordBot.js";
  * @param {Object} player - Player object from the core.players
  */
 export default async function checkPlayerIfAlertIsNeeded(player, now) {
-    const ONE_DAY = 24 * 60 * 60 * 1000;
-    const barrier = now - ONE_DAY;
+    const barrier = now - 12 * 60 * 60 * 1000;
 
     const recentKills = player.kills.filter(kill => kill.timestamp > barrier).length;
     const recentDeaths = player.deaths.filter(death => death.timestamp > barrier).length;
@@ -22,8 +21,8 @@ export default async function checkPlayerIfAlertIsNeeded(player, now) {
     const recentUniqueKills = getUniqueItemCount(player.kills, barrier, "killed");
     const recentUniqueDeaths = getUniqueItemCount(player.deaths, barrier, "killer")
 
-    const recentCheatReports = player.reports.cheat.filter(report => { report.timestamp > barrier }).length;
-    const recentAbusiveReports = player.reports.toxic.filter(report => { report.timestamp > barrier }).length;
+    const recentCheatReports = player.reports.cheat.filter(report => report.timestamp > barrier ).length;
+    const recentAbusiveReports = player.reports.toxic.filter(report => report.timestamp > barrier ).length;
 
     const recentUniqueCheatReports = getUniqueRecentReportCount(player.reports.cheat, barrier);
     const recentUniqueAbusiveReports = getUniqueRecentReportCount(player.reports.toxic, barrier);
@@ -39,12 +38,19 @@ export default async function checkPlayerIfAlertIsNeeded(player, now) {
         name: player.name
     }    
 
+    console.log(playerData);
+    
+
     //Check if any alert should be triggered
-    for (const alert of alerts) {
+    for (const alert of alerts.customs) {
         if (player.lastAlerts[alert.id] > barrier) continue;
         let triggered = true;
         for (const trigger of alert.triggers) {
             const currentValue = playerData[trigger.value]
+            if (trigger.value === "hours" && currentValue < 0) { //Don't check hours, if it's not known
+                triggered = false;
+                break;
+            }
             
             if (trigger.condition.action === "greater-than" && currentValue <= trigger.condition.value) {
                 triggered = false;

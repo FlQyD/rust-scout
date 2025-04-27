@@ -59,7 +59,7 @@ function replaceEmbedContent(embed, data) {
         value = value.replaceAll("{RECENT_UNIQUE_KILLS}", data.recentUniqueKills);
         value = value.replaceAll("{RECENT_UNIQUE_DEATHS}", data.recentUniqueDeaths);
         value = value.replaceAll("{RECENT_CHEATING_REPORTS}", data.recentCheatReports);
-        value = value.replaceAll("{RECENT_ABUSIVE_REPORT_COUNT}", data.recentAbusiveReports);
+        value = value.replaceAll("{RECENT_ABUSIVE_REPORT}", data.recentAbusiveReports);
         value = value.replaceAll("{RECENT_UNIQUE_CHEATING_REPORT}", data.recentUniqueCheatReports);
         value = value.replaceAll("{RECENT_UNIQUE_ABUSIVE_REPORT}", data.recentUniqueAbusiveReports);
         value = value.replaceAll("{HOURS}", data.hours);
