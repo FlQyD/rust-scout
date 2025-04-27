@@ -54,7 +54,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
             })
             .filter(row => row !== null);
         await interaction.update({ embeds: [embed], components: updatedComponents });
-    }else if(customId.startsWith('ignore-alt')){
+    } else if (customId.startsWith('ignore-alt')) {
         embed.setFooter({
             text: `Ignored by ${user.username}`,
             iconURL: avatarURL,
@@ -78,14 +78,14 @@ client.on(Events.InteractionCreate, async (interaction) => {
         removedPushed(interaction, embed, avatarURL)
     } else if (customId.startsWith("show-more")) {
         showMorePushed(interaction, customId);
-    } else if (customId.startsWith("alt-check-")){
+    } else if (customId.startsWith("alt-check-")) {
         pageSwitchButtonPushed(interaction);
     }
 });
 async function showMorePushed(interaction, customId) {
     const bmId = customId.split("-")[2];
     if (!altCheck.playerData[bmId]) return await interaction.reply({ content: 'Something went wrong.', flags: 64 });
-    
+
     showPlayerProfile(interaction, bmId)
 }
 
@@ -162,12 +162,29 @@ export default async function sendAlert(type, data) {
 
     await channel.send({ content: content, embeds: [embed], components: [buttons] });
 }
-setTimeout(() => {
+
+export async function sendDynamicAlert(alert, data) {
+    console.log(alert, data);
+    
     try {
-        client.login(config.discord.botAuthToken);
+        const content = "";
+
+        const embed = getEmbed(alert.id, data, alert)
+        const buttons = getButtons(alert.id, "bmId", data, alert)
+
+        await channel.send({ content: content, embeds: [embed], components: [buttons] });
     } catch (error) {
-        logError(error.stack.toString());
         console.log(error);
-        throw error;
+        return false;
     }
-}, 5000);
+    return true;
+}
+
+
+try {
+    client.login(config.discord.botAuthToken);
+} catch (error) {
+    logError(error.stack.toString());
+    console.log(error);
+    throw error;
+}

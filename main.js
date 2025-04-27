@@ -19,10 +19,6 @@ const hourRequestQueue = [];
 warmUp();
 async function warmUp() {
     await checkConfig();
-
-    const player = core.players[1147207481];
-    checkPlayerIfAlertIsNeeded(player, core.lastProcessed);
-
     resetNotificationSettings();
 
     requestHours();
@@ -55,7 +51,14 @@ function resetNotificationSettings() {
     
     core.notifications = newCoreNotificationObject;    
 }
+
 async function main() {
+    setTimeout(() => {
+        const player = core.players[1147207481];
+        checkPlayerIfAlertIsNeeded(player, core.lastProcessed);
+    }, 3000);
+
+
     while (true) {
         await requestAndProcessActivity(core);
         await new Promise(r => { setTimeout(() => { r() }, 25000); })
@@ -354,7 +357,7 @@ export async function logError(text) {
         console.error(error);
     }
 }
-function getTimeString() {
+export function getTimeString() {
     return new Date(Date.now()).toISOString().substring(0, 19).replace("T", " | ")
 }
 
