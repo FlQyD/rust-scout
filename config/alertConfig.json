@@ -17,7 +17,7 @@
             "url": "https://www.battlemetrics.com/rcon/players/{BM_ID}",
             "color": 16725576,
             "buttons": {
-                "checkable": true
+                "check": true
             }
         }
     },
@@ -39,7 +39,7 @@
             "url": "https://www.battlemetrics.com/rcon/players/{BM_ID}",
             "color": 16725576,
             "buttons": {
-                "checkable": true
+                "check": true
             }
         }
     },
@@ -63,12 +63,12 @@
             }
         ],
         "embed": {
-            "description": "```name:    {NAME}\nbmId:    {BM_ID}\nsteamID: {STEAM_ID}\nreports: {RECENT_ABUSIVE_REPORT_COUNT}```\nThis player received more than 3 abusive reports in the last 12 hours.",
-            "title": "MASS REPORTED - ABUSIVE",
+            "description": "```name:    {NAME}\nbmId:    {BM_ID}\nsteamID: {STEAM_ID}\nreports: {RECENT_CHEATING_REPORTS}\nhours:   {HOURS}\n\nkills:  {RECENT_KILLS}\ndeaths: {RECENT_DEATHS}\nK/D:    {RECENT_KD}```\nLow hour player reached a high K/D .",
+            "title": "SUS ALERT - CHEATING",
             "url": "https://www.battlemetrics.com/rcon/players/{BM_ID}",
             "color": 16725576,
             "buttons": {
-                "checkable": true
+                "check": true
             }
         }
     }

@@ -4,8 +4,8 @@
  *   - massReportCheating: Player got more then 4 cheating report in the last 24 hours.
  *   - susCheating: Player with less then 150 hours has 5 or higher KD
  */
-import { alerts } from "../../main.js";
-import sendAlert from "../discord/discordBot.js";
+import { alerts, getTimeString } from "../../main.js";
+import sendAlert, { sendDynamicAlert } from "../discord/discordBot.js";
 
 /**
  * 
@@ -19,8 +19,8 @@ export default async function checkPlayerIfAlertIsNeeded(player, now) {
     const recentDeaths = player.deaths.filter(death => death.timestamp > barrier).length;
     const recentKd = recentDeaths === 0 ? Number((recentKills / 1).toFixed(2)) : Number((recentKills / recentDeaths).toFixed(2));
 
-    const recentUniqueKills = getUniqueItems(player.kills, barrier, "killed");
-    const recentUniqueDeaths = getUniqueItems(player.deaths, barrier, "killer")
+    const recentUniqueKills = getUniqueItemCount(player.kills, barrier, "killed");
+    const recentUniqueDeaths = getUniqueItemCount(player.deaths, barrier, "killer")
 
     const recentCheatReports = player.reports.cheat.filter(report => { report.timestamp > barrier }).length;
     const recentAbusiveReports = player.reports.toxic.filter(report => { report.timestamp > barrier }).length;
@@ -33,8 +33,11 @@ export default async function checkPlayerIfAlertIsNeeded(player, now) {
         recentUniqueKills, recentUniqueDeaths,
         recentCheatReports, recentAbusiveReports,
         recentUniqueCheatReports, recentUniqueAbusiveReports,
-        hours: player.hours
-    }
+        hours: player.hours,
+        bmId: player.bmId,
+        steamId: player.steamId,
+        name: player.name
+    }    
 
     //Check if any alert should be triggered
     for (const alert of alerts) {
@@ -62,12 +65,12 @@ export default async function checkPlayerIfAlertIsNeeded(player, now) {
         }        
         if (!triggered) continue;
 
-        player.lastAlerts[alert.id] = Date.now();
-        
-        sendAlert(alert.id, playerData);
+        if (await sendDynamicAlert(alert, playerData)) { //Alert Send
+            player.lastAlerts[alert.id] = Date.now();
+            console.log(`${getTimeString()} | "${alert.id}" was sent to ${playerData.bmId}`);    
+        }
     }
 }
-
 
 function getUniqueRecentReportCount(reports, barrier) {
     return reports
@@ -76,7 +79,7 @@ function getUniqueRecentReportCount(reports, barrier) {
         .filter((reporter, index, cheatReporters) => cheatReporters.indexOf(reporter) === index)
         .length;
 }
-function getUniqueItems(array, barrier, type) {    
+function getUniqueItemCount(array, barrier, type) {    
     return array
         .filter(item => item.timestamp > barrier)
         .map(item => item[type])
