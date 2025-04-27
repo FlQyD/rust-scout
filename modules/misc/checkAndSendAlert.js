@@ -1,14 +1,7 @@
-/**
- * Alerts:
- *   - massReportAbusive: Player got more then 4 abusive report in the last 24 hours.
- *   - massReportCheating: Player got more then 4 cheating report in the last 24 hours.
- *   - susCheating: Player with less then 150 hours has 5 or higher KD
- */
 import { alerts, getTimeString } from "../../main.js";
-import sendAlert, { sendDynamicAlert } from "../discord/discordBot.js";
+import { sendAlert } from "../discord/discordBot.js";
 
 /**
- * 
  * @param {Object} player - Player object from the core.players
  */
 export default async function checkPlayerIfAlertIsNeeded(player, now) {
@@ -38,10 +31,7 @@ export default async function checkPlayerIfAlertIsNeeded(player, now) {
         name: player.name
     }    
 
-    console.log(playerData);
-    
-
-    //Check if any alert should be triggered
+    //Trigger if any alert should be triggered
     for (const alert of alerts.customs) {
         if (player.lastAlerts[alert.id] > barrier) continue;
         let triggered = true;
@@ -71,7 +61,7 @@ export default async function checkPlayerIfAlertIsNeeded(player, now) {
         }        
         if (!triggered) continue;
 
-        if (await sendDynamicAlert(alert, playerData)) { //Alert Send
+        if (await sendAlert("", alert, playerData)) { //Alert Send
             player.lastAlerts[alert.id] = Date.now();
             console.log(`${getTimeString()} | "${alert.id}" was sent to ${playerData.bmId}`);    
         }

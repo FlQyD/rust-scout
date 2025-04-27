@@ -2,9 +2,7 @@ export function levenshteinStringComparison(str1, str2) {
     const len1 = str1.length;
     const len2 = str2.length;
     const distGrid = Array.from({ length: len1 + 1 }, () => Array(len2 + 1).fill(0));
-    const operations = Array.from({ length: len1 + 1 }, () =>
-        Array(len2 + 1).fill(null)
-    );
+    const operations = Array.from({ length: len1 + 1 }, () => Array(len2 + 1).fill(null));
 
     for (let i = 0; i <= len1; i++) {
         distGrid[i][0] = i;

@@ -74,7 +74,32 @@
             }
         }
     ],
-    "watchlist": {},
-    "rgbFound": {},
-    "rgbShowMore": {}
+    "watchlist": {
+        "enabled": true,
+        "id": "watchlistAlert",
+        "name": "WATCHLIST ALERT",
+        "embed": {
+            "description": "{NAME} joined from the watchlist.\n```steam ID: {STEAM_ID}\n    bmID: {BM_ID}\n    name: {NAME}\n    note: {NOTE}```",
+            "title": "WATCHLIST ALERT",
+            "color": 4634623,
+            "url": "https://www.battlemetrics.com/rcon/players/{BM_ID}",
+            "authorName": "added to watchlist by {ADMIN_NAME}",
+            "authorIcon": "{ADMIN_AVATAR}",
+            "buttons": {
+                "check": true,
+                "watchlistRemove": true
+            }
+        }
+    },
+    "rgbFound": {
+        "enabled": true,
+        "embed": {
+            "description": "**[{NAME}](https://www.battlemetrics.com/rcon/players/{BM_ID})** is connected to {COUNT} rust game banned account.",
+            "authorName": "System - RGB tracker",
+            "buttons": {
+                "rgbShowMore": true,
+                "rgbIgnore": true
+            }
+        } 
+    }
 }

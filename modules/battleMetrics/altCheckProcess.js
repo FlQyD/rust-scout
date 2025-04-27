@@ -204,7 +204,7 @@ async function getHistoricFriends(steamId) {
         return data.friends.map(item => returnArr.push(item.steamId));
     } catch (error) {
         return [];
-        console.log(error);
+        console.error(error);
     }
 }
 
