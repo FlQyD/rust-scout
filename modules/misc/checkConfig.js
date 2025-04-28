@@ -51,7 +51,6 @@ async function checkDiscordBotAuthAndPrivileges() {
 
             if (!permissions.has('SendMessages')) throw new Error(`The Discord Bot is missing the permission to send messages to ${channel.name} | Channel ID: ${channel.id}`);
             if (!permissions.has('EmbedLinks')) throw new Error(`The Discord Bot is missing the permission to send embed messages to ${channel.name} | Channel ID: ${channel.id}`);
-
         } catch (error) {
             throw new Error(`DISCORD: ${error.message}`);
         } finally {
