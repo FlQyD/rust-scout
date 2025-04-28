@@ -14,17 +14,16 @@ export default async function requestAndProcessActivity(core) {
     }
 }
 
-
 async function processData(activityMessages, core) {
     activityMessages = activityMessages.reverse();
     activityMessages.forEach(activityMessage => {
         if (activityMessage.type !== "activityMessage") return;
 
-        const messageSent = new Date(activityMessage.attributes.timestamp).getTime();
-        if (core.lastProcessed >= messageSent) return;
+        const messageTimestamp = new Date(activityMessage.attributes.timestamp).getTime();
+        if (core.lastProcessed >= messageTimestamp) return;
 
         const type = activityMessage.attributes.messageType;
-        
+
         switch (type) {
             case "event:addPlayer": //Player joined
                 updatePlayer(
@@ -38,7 +37,7 @@ async function processData(activityMessages, core) {
             case "rustLog:playerDeath:PVP": //Player killed
                 if (activityMessage.attributes.data.player_id === undefined) break;
                 if (activityMessage.attributes.data.killer_id === undefined) break;
-                
+
                 updatePlayer(
                     String(activityMessage.attributes.data.player_id),
                     String(activityMessage.attributes.data.steamID),
@@ -46,7 +45,7 @@ async function processData(activityMessages, core) {
                     "death",
                     {
                         killerBmId: String(activityMessage.attributes.data.killer_id),
-                        timestamp: messageSent,
+                        timestamp: messageTimestamp,
                     }
                 );
                 updatePlayer(
@@ -56,11 +55,14 @@ async function processData(activityMessages, core) {
                     "kill",
                     {
                         killedBmId: String(activityMessage.attributes.data.player_id),
-                        timestamp: messageSent,
+                        timestamp: messageTimestamp,
                     }
                 );
                 break;
             case "rustLog:playerReport": //Player reported
+                if (activityMessage.attributes.data.forPlayerId === undefined) break;
+                if (activityMessage.attributes.data.fromPlayerId === undefined) break;
+
                 updatePlayer(
                     String(activityMessage.attributes.data.forPlayerId),
                     String(activityMessage.attributes.data.forSteamID),
@@ -69,13 +71,14 @@ async function processData(activityMessages, core) {
                     {
                         reportType: String(activityMessage.attributes.data.reportType),
                         reporterBmId: String(activityMessage.attributes.data.fromPlayerId),
-                        timestamp: messageSent,
+                        timestamp: messageTimestamp,
                     }
                 );
                 break;
             default:
-                break;
+                console.error(`UNKNOWN ACTIVITY MESSAGE: \n${activityMessage}`);
         }
-        core.lastProcessed = messageSent;
+
+        core.lastProcessed = messageTimestamp;
     });
 }

@@ -11,8 +11,8 @@ export default async function buttonPressed(interaction) {
 
     if (customId === 'checking') return checkButtonPressed(interaction);
     if (customId.startsWith('ignore-alt')) return ignoreAltButtonPressed(interaction);
-    if (customId.startsWith("remove")) return removedPushed(interaction)
-    if (customId.startsWith("show-more")) return showMorePushed(interaction);
+    if (customId.startsWith("remove")) return removedPressed(interaction)
+    if (customId.startsWith("show-more")) return showMorePressed(interaction);
     if (customId.startsWith("alt-check-")) return pageSwitchButtonPushed(interaction);
 }
 
@@ -68,7 +68,7 @@ async function ignoreAltButtonPressed(interaction) {
 
     await interaction.update({ embeds: [embed], components: updatedComponents });
 }
-async function removedPushed(interaction) {
+async function removedPressed(interaction) {
     const { customId, user, message } = interaction;
     const bmId = customId.split("-")[1];
 
@@ -85,7 +85,7 @@ async function removedPushed(interaction) {
 
     await interaction.update({ embeds: [embed], components: [] });
 }
-async function showMorePushed(interaction) {
+async function showMorePressed(interaction) {
     const customId = interaction.customId;
 
     const bmId = customId.split("-")[2];

@@ -25,7 +25,7 @@ async function warmUp() {
     resetNotificationSettings();
 
     requestHours();
-    altChecker();
+    if(alerts.rgbFound.enabled) altChecker();
     garbageCollector();
 
     //Populate hourRequestQueue on start
@@ -37,7 +37,7 @@ async function warmUp() {
     //Populate altCheckQueue on start
     for (const playerId in core.players) {
         if (altCheck.playerData[playerId]) continue;
-        altCheckQueue.push(playerId);
+        backgroundCheckEntryPoint(playerId);
     }
     await new Promise(r => { setTimeout(() => { r() }, 2000); })
     main();
@@ -89,7 +89,7 @@ export function updatePlayer(bmId, steamId, name, action, data) {
 
     if (action === "join") {
         checkIfPlayerIsOnTheWatchList(player);
-        checkIfPlayerHasBeenBackgroundChecked(player.bmId);
+        backgroundCheckEntryPoint(player.bmId);
         return; //No additional check is needed
     }
     if (action === "kill") {
@@ -129,7 +129,7 @@ function newPlayerProfile(bmId, steamId, name) {
 
 export async function updateAlertNotifications(interaction) {
     if (interaction.channel.id !== config.discord.channelId)
-        return await interaction.reply({ content: `You cannot use this command in this channel.`, flags: 64 });
+        return interaction.reply({ content: `You cannot use this command in this channel.`, flags: 64 });
 
     const userId = interaction.user.id;
     const alerts = getAlertIds();
@@ -159,7 +159,6 @@ export function getAlertIds(params) {
 
     return ids;
 }
-
 
 async function requestHours() {
     while (true) {
@@ -219,7 +218,7 @@ async function altChecker() {
     }
 }
 
-function checkIfPlayerHasBeenBackgroundChecked(bmId) {
+function backgroundCheckEntryPoint(bmId) {
     if (!alerts.rgbFound.enabled) return; //NO RGB Account search
 
     if (altCheck.ignoreList[bmId]) return;     //On the ignore list
@@ -348,9 +347,11 @@ function deleteOldWatchlistData() {
 }
 function deleteOldAltData() {
     const ONE_MONTH = 30 * 24 * 60 * 60 * 1000;
+    const barrier = core.lastProcessed - ONE_MONTH;
+
     for (const alt in altCheck.playerData) {
         const timestamp = altCheck.playerData[alt].timestamp;
-        if (timestamp < (core.lastProcessed - ONE_MONTH)) {
+        if (timestamp < (barrier)) {
             delete altCheck.playerData[alt]
             console.log(`GARBAGE COLLECTION: ${alt} was removed from alt data`);
         }
