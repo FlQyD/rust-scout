@@ -204,7 +204,7 @@ async function altChecker() {
         outcome.timestamp = Date.now();
         altCheck.playerData[player] = outcome;
 
-        if (outcome.possibleAlts === 0) return; //No alts was found
+        if (outcome.possibleAlts === 0) continue; //No alts was found
 
         const data = {
             steamId: core.players[player]?.steamId,
