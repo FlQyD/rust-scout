@@ -1,39 +1,38 @@
 import { ButtonBuilder, ActionRowBuilder, ButtonStyle } from 'discord.js';
 
-export default function getButtons(type, bmId) {
-    if (type === "possibleRgbAccountFound") {
-        return getShowMoreButton(bmId);
-    }
-    return getNormalButtons(type, bmId);
-}
-
-function getNormalButtons(type, bmId) {
+export default function getButtons(data, buttons) {    
     const actionRow = new ActionRowBuilder();
-    actionRow.addComponents(
-        new ButtonBuilder()
-            .setCustomId('checking')
-            .setLabel('Checking')
-            .setStyle(ButtonStyle.Success)
-    );
-    if (type === 'watchListAlert') {
+    if (buttons.check) {
         actionRow.addComponents(
             new ButtonBuilder()
-                .setCustomId('remove-'+bmId)
+                .setCustomId('checking')
+                .setLabel('Checking')
+                .setStyle(ButtonStyle.Success)
+        );
+    }
+    if (buttons.watchlistRemove) {
+        actionRow.addComponents(
+            new ButtonBuilder()
+                .setCustomId(`remove-${data.bmId}`)
                 .setLabel('Remove from watchlist')
                 .setStyle(ButtonStyle.Danger)
         );
     }
+    if (buttons.rgbShowMore) {
+        actionRow.addComponents(
+            new ButtonBuilder()
+                .setCustomId(`show-more-${data.bmId}`)
+                .setLabel('Show more')
+                .setStyle(ButtonStyle.Secondary),
+        );
+    }
+    if (buttons.rgbIgnore) {
+        actionRow.addComponents(
+            new ButtonBuilder()
+                .setCustomId(`ignore-alt-${data.bmId}`)
+                .setLabel('Ignore')
+                .setStyle(ButtonStyle.Secondary)
+        )
+    }
     return actionRow;
-}
-function getShowMoreButton(bmId) {
-    return new ActionRowBuilder().addComponents(
-        new ButtonBuilder()
-            .setCustomId(`show-more-${bmId}`)
-            .setLabel('Show more')
-            .setStyle(ButtonStyle.Secondary),
-        new ButtonBuilder()
-            .setCustomId(`ignore-alt-${bmId}`)
-            .setLabel('Ignore')
-            .setStyle(ButtonStyle.Secondary)
-    );
 }

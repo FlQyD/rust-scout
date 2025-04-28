@@ -1,5 +1,5 @@
 import config from "../../config/config.js";
-import { Client, Events, GatewayIntentBits, EmbedBuilder, ActionRowBuilder } from 'discord.js';
+import { Client, GatewayIntentBits } from 'discord.js';
 
 async function checkConfig() {
     await checkForCredentials();
@@ -51,10 +51,8 @@ async function checkDiscordBotAuthAndPrivileges() {
 
             if (!permissions.has('SendMessages')) throw new Error(`The Discord Bot is missing the permission to send messages to ${channel.name} | Channel ID: ${channel.id}`);
             if (!permissions.has('EmbedLinks')) throw new Error(`The Discord Bot is missing the permission to send embed messages to ${channel.name} | Channel ID: ${channel.id}`);
-
         } catch (error) {
             throw new Error(`DISCORD: ${error.message}`);
-            
         } finally {
             client.destroy();
         }

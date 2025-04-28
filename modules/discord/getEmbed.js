@@ -1,61 +1,45 @@
 import { EmbedBuilder } from 'discord.js';
 
-export default function getEmbed(type, data) {
-    if (type === "massReportedAbusive") {
-        return getMassReportedAbusiveEmbed(data)
-    } else if (type === "massReportedCheating") {
-        return getMassReportedCheatingEmbed(data)
-    } else if (type === "susCheating") {
-        return getSusAlertCheatingEmbed(data)
-    } else if (type === "watchListAlert") {
-        return getWatchListEmbed(data);
-    } else if (type === "possibleRgbAccountFound") {
-        return getPossibleRgbAccountFoundEmbed(data);
-    }
-}
-
-function getMassReportedAbusiveEmbed(data) {
+export default function getEmbed(data, alert) {
+    const embedContent = replaceEmbedContent(alert.embed, data)
+    
     const embed = new EmbedBuilder()
-        .setTitle('MASS REPORTED - ABUSIVE')
-        .setDescription(`\`\`\`name:    ${data.name}\nbmId:    ${data.bmId}\nsteamID: ${data.steamId}\nreports: ${data.recentUniqueAbusiveReports}\n\nhours:  ${data.hours < 0 ? "Private" : data.hours + "h"} \`\`\`\nThis player received more then 3 abusive report in the last 24 hours.`)
-        .setColor(14604341)
-        .setURL('https://www.battlemetrics.com/rcon/players/' + data.bmId);
-    return embed;
-}
-function getMassReportedCheatingEmbed(data) {
-    const embed = new EmbedBuilder()
-        .setTitle('MASS REPORTED - CHEATING')
-        .setDescription(`\`\`\`name:    ${data.name}\nbmId:    ${data.bmId}\nsteamID: ${data.steamId}\nreports: ${data.recentUniqueCheatReports}\n\nhours:  ${data.hours < 0 ? "Private" : data.hours + "h"}\nKILLS:  ${data.recentKills} \nDEATHS: ${data.recentDeaths}\nK/D:    ${data.recentKd} \`\`\`\nThis player received more then 3 cheating report in the last 12 hours.`)
-        .setColor(16725576)
-        .setURL('https://www.battlemetrics.com/rcon/players/' + data.bmId);
-    return embed;
-}
-function getSusAlertCheatingEmbed(data) {
-    const embed = new EmbedBuilder()
-        .setTitle('SUS ALERT - CHEATING')
-        .setDescription(`\`\`\`name:    ${data.name}\nbmId:    ${data.bmId}\nsteamID: ${data.steamId}\nreports: ${data.recentUniqueCheatReports}\n\nhours:  ${data.hours < 0 ? "Private" : data.hours + "h"}\nKILLS:  ${data.recentKills} \nDEATHS: ${data.recentDeaths}\nK/D:    ${data.recentKd}\`\`\`\nLow hour player has reached a high KD.`)
-        .setColor(16725576)
-        .setURL('https://www.battlemetrics.com/rcon/players/' + data.bmId);
-    return embed;
-}
-function getWatchListEmbed(data) {
-    const embed = new EmbedBuilder()
-        .setTitle("WATCHLIST ALERT")
-        .setDescription(`${data.name} joined from the watchlist.\n\`\`\`steam ID: ${data.steamId}\n   bm ID: ${data.bmId}\n    name: ${data.name}${data.note ? "\n\nNote: " + data.note : ""}\`\`\``)
-        .setColor(4634623)
-        .setURL(`https://www.battlemetrics.com/rcon/players/${data.bmId}`)
-        .setAuthor({
-            name: `added to watchlist by ${data.adminName}`,
-            iconURL: `${data.adminAvatar}`
+    if (embedContent.title) embed.setTitle(embedContent.title);
+    if (embedContent.url) embed.setURL(embedContent.url)
+    if (embedContent.description) embed.setDescription(embedContent.description);
+    if (embedContent.color) embed.setColor(Number(embedContent.color));
+    if (embedContent.authorName || embedContent.authorIcon) {
+        embed.setAuthor({
+            name: embedContent.authorName,
+            iconURL: embedContent.authorIcon
         })
+    }
     return embed;
 }
-function getPossibleRgbAccountFoundEmbed(data) {
-    const embed = new EmbedBuilder()
-        .setDescription(
-            `**[${data.name}](https://battlemetrics.com/rcon/player/${data.bmId})** is connected to **${data.numberOfPossibleAlts}** game banned accounts.\n`
-        )
-        .setColor(0x00C9F1)
-        .setAuthor({ name: "System - RGB tracker" });
-    return embed;
+function replaceEmbedContent(embed, data) {    
+    const newEmbed = {};
+    for (const item in embed) {
+        let value = String(embed[item]);
+        
+        value = value.replaceAll("{BM_ID}", data.bmId ? data.bmId : "N/A");
+        value = value.replaceAll("{STEAM_ID}", data.steamId ? data.steamId : "N/A");
+        value = value.replaceAll("{RECENT_KILLS}", data.recentKills ? data.recentKills : "N/A");
+        value = value.replaceAll("{RECENT_DEATHS}", data.recentDeaths ? data.recentDeaths : "N/A");
+        value = value.replaceAll("{RECENT_KD}", data.recentKd ? data.recentKd : "N/A");
+        value = value.replaceAll("{RECENT_UNIQUE_KILLS}", data.recentUniqueKills ? data.recentUniqueKills : "N/A");
+        value = value.replaceAll("{RECENT_UNIQUE_DEATHS}", data.recentUniqueDeaths ? data.recentUniqueDeaths : "N/A");
+        value = value.replaceAll("{RECENT_CHEATING_REPORTS}", data.recentCheatReports ? data.recentCheatReports : "N/A");
+        value = value.replaceAll("{RECENT_ABUSIVE_REPORT}", data.recentAbusiveReports ? data.recentAbusiveReports : "N/A");
+        value = value.replaceAll("{RECENT_UNIQUE_CHEATING_REPORT}", data.recentUniqueCheatReports ? data.recentUniqueCheatReports : "N/A");
+        value = value.replaceAll("{RECENT_UNIQUE_ABUSIVE_REPORT}", data.recentUniqueAbusiveReports ? data.recentUniqueAbusiveReports : "N/A");
+        value = value.replaceAll("{HOURS}", data.hours ? data.hours : "N/A");
+        value = value.replaceAll("{NAME}", data.name ? data.name : "N/A");
+        value = value.replaceAll("{NOTE}", data.note ? data.note : "N/A");
+        value = value.replaceAll("{ADMIN_NAME}", data.adminName ? data.adminName : "N/A");
+        value = value.replaceAll("{ADMIN_AVATAR}", data.adminAvatar ? data.adminAvatar : "N/A");
+        value = value.replaceAll("{COUNT}", data.count ? data.count : "N/A");
+
+        newEmbed[item] = value;
+    }
+    return newEmbed;
 }

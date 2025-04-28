@@ -1,0 +1,105 @@
+{
+    "customs": [
+        {
+            "id": "massReportedCheating",
+            "name": "MASS REPORTED - CHEATING",
+            "triggers": [
+                {
+                    "value": "recentCheatReports",
+                    "condition": {
+                        "action": "greater-than",
+                        "value": 3
+                    }
+                }
+            ],
+            "embed": {
+                "description": "```name:    {NAME}\nbmId:    {BM_ID}\nsteamID: {STEAM_ID}\nreports: {RECENT_CHEATING_REPORTS}\n\nhours:  {HOURS}\nKILLS:  {RECENT_KILLS} \nDEATHS: {RECENT_DEATHS}\nK/D:    {RECENT_KD}```\nThis player received more than 3 cheating reports in the last 12 hours.",
+                "title": "MASS REPORTED - CHEATING",
+                "url": "https://www.battlemetrics.com/rcon/players/{BM_ID}",
+                "color": 16725576,
+                "buttons": {
+                    "check": true
+                }
+            }
+        },
+        {
+            "id": "massReportedAbusive",
+            "name": "MASS REPORTED - ABUSIVE",
+            "triggers": [
+                {
+                    "value": "recentAbusiveReports",
+                    "condition": {
+                        "action": "greater-than",
+                        "value": 3
+                    }
+                }
+            ],
+            "embed": {
+                "description": "```name:    {NAME}\nbmId:    {BM_ID}\nsteamID: {STEAM_ID}\nreports: {RECENT_ABUSIVE_REPORT}```\nThis player received more than 3 abusive reports in the last 12 hours.",
+                "title": "MASS REPORTED - ABUSIVE",
+                "url": "https://www.battlemetrics.com/rcon/players/{BM_ID}",
+                "color": 16725576,
+                "buttons": {
+                    "check": true
+                }
+            }
+        },
+        {
+            "id": "susAlertCheating",
+            "name": "SUS ALERT - CHEATING",
+            "triggers": [
+                {
+                    "value": "recentKd",
+                    "condition": {
+                        "action": "greater-than",
+                        "value": 6
+                    }
+                },
+                {
+                    "value": "hours",
+                    "condition": {
+                        "action": "less-than",
+                        "value": 150
+                    }
+                }
+            ],
+            "embed": {
+                "description": "```name:    {NAME}\nbmId:    {BM_ID}\nsteamID: {STEAM_ID}\nreports: {RECENT_CHEATING_REPORTS}\nhours:   {HOURS}\n\nkills:  {RECENT_KILLS}\ndeaths: {RECENT_DEATHS}\nK/D:    {RECENT_KD}```\nLow hour player reached a high K/D .",
+                "title": "SUS ALERT - CHEATING",
+                "url": "https://www.battlemetrics.com/rcon/players/{BM_ID}",
+                "color": 16725576,
+                "buttons": {
+                    "check": true
+                }
+            }
+        }
+    ],
+    "watchlist": {
+        "enabled": true,
+        "id": "watchlistAlert",
+        "name": "WATCHLIST ALERT",
+        "embed": {
+            "description": "{NAME} joined from the watchlist.\n```steam ID: {STEAM_ID}\n    bmID: {BM_ID}\n    name: {NAME}\n    note: {NOTE}```",
+            "title": "WATCHLIST ALERT",
+            "color": 4634623,
+            "url": "https://www.battlemetrics.com/rcon/players/{BM_ID}",
+            "authorName": "added to watchlist by {ADMIN_NAME}",
+            "authorIcon": "{ADMIN_AVATAR}",
+            "buttons": {
+                "check": true,
+                "watchlistRemove": true
+            }
+        }
+    },
+    "rgbFound": {
+        "enabled": true,
+        "embed": {
+            "description": "**[{NAME}](https://www.battlemetrics.com/rcon/players/{BM_ID})** is connected to {COUNT} rust game banned account.",
+            "authorName": "System - RGB tracker",
+            "buttons": {
+                "rgbShowMore": true,
+                "rgbIgnore": true
+            }
+        } 
+    }
+}

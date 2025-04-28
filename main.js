@@ -1,25 +1,31 @@
+import fs from 'fs';
+import config from "./config/config.js";
+import { sendAlert } from "./modules/discord/discordBot.js";
+
+import { altCheckProcess } from "./modules/battleMetrics/altCheckProcess.js";
 import requestAndProcessActivity from "./modules/battleMetrics/requestActivity.js";
 import timePlayed from "./modules/battleMetrics/timePlayed.js";
+
 import checkPlayerIfAlertIsNeeded from "./modules/misc/checkAndSendAlert.js";
-import config from "./config/config.js";
-import fs from 'fs';
-import sendAlert from "./modules/discord/discordBot.js";
-import { altCheckProcess } from "./modules/battleMetrics/altCheckProcess.js";
 import checkConfig from "./modules/misc/checkConfig.js";
+
 
 if (!fs.existsSync("./data")) fs.mkdirSync("./data");
 
 export const core = loadCore();
 export const altCheck = loadAltCheck();
+export const alerts = loadAlerts();
+
 const altCheckQueue = [];
 const hourRequestQueue = [];
 
 warmUp();
 async function warmUp() {
     await checkConfig();
+    resetNotificationSettings();
 
     requestHours();
-    altChecker();
+    if(alerts.rgbFound.enabled) altChecker();
     garbageCollector();
 
     //Populate hourRequestQueue on start
@@ -31,10 +37,22 @@ async function warmUp() {
     //Populate altCheckQueue on start
     for (const playerId in core.players) {
         if (altCheck.playerData[playerId]) continue;
-        altCheckQueue.push(playerId);
+        backgroundCheckEntryPoint(playerId);
     }
     await new Promise(r => { setTimeout(() => { r() }, 2000); })
     main();
+}
+function resetNotificationSettings() {
+    const prevNotifications = JSON.parse(JSON.stringify(core.notifications));
+
+    const newNotifications = getAlertIds().map(alert => alert.toLowerCase());
+    const newCoreNotificationObject = {};
+
+    newNotifications.forEach(alert => {
+        newCoreNotificationObject[alert] = prevNotifications[alert] ? [...prevNotifications[alert]] : [];
+    })
+
+    core.notifications = newCoreNotificationObject;
 }
 
 async function main() {
@@ -71,8 +89,8 @@ export function updatePlayer(bmId, steamId, name, action, data) {
 
     if (action === "join") {
         checkIfPlayerIsOnTheWatchList(player);
-        checkIfPlayerHasBeenBackgroundChecked(player.bmId);
-        return;
+        backgroundCheckEntryPoint(player.bmId);
+        return; //No additional check is needed
     }
     if (action === "kill") {
         if (data.killedBmId == undefined) return;
@@ -104,38 +122,42 @@ function newPlayerProfile(bmId, steamId, name) {
             cheat: [],
             toxic: [],
         },
-        lastAlerts: {
-            susCheating: 0,
-            massReportedCheating: 0,
-            massReportedAbusive: 0,
-        },
-        lastUpdated: 0,
+        lastAlerts: {},
+        lastUpdated: core.lastProcessed,
     };
 }
 
 export async function updateAlertNotifications(interaction) {
     if (interaction.channel.id !== config.discord.channelId)
-        return await interaction.reply({ content: `You cannot use this command in this channel.`, flags: 64 });
-    const user = interaction.user.id;
-    let massReportedAbusive = updateNotification("massReportedAbusive", interaction.options.getBoolean('mass-reported-abusive'), user);
-    let massReportedCheating = updateNotification("massReportedCheating", interaction.options.getBoolean('mass-reported-cheating'), user);
-    let susCheating = updateNotification("susCheating", interaction.options.getBoolean('sus-cheating'), user);
-    let possibleRgbAccountFound = updateNotification("possibleRgbAccountFound", interaction.options.getBoolean("possible-rgb-account-found"), user)
+        return interaction.reply({ content: `You cannot use this command in this channel.`, flags: 64 });
 
-    await interaction.reply({ content: `Your current notification settings:\`\`\`massReportedAbusive: ${massReportedAbusive}\nmassReportedCheating: ${massReportedCheating}\nsusCheating: ${susCheating}\npossibleRgbAccountFound: ${possibleRgbAccountFound}\`\`\``, flags: 64 });
+    const userId = interaction.user.id;
+    const alerts = getAlertIds();
+
+    let content = "Your current notification settings: ```"
+    alerts.forEach(alert => {
+        const payload = interaction.options.getBoolean(alert.toLowerCase());
+        content += `${alert}: ${updateNotification(alert.toLowerCase(), payload, userId)}\n`;
+    })
+    content += "```";
+
+    await interaction.reply({ content, flags: 64 });
 }
 function updateNotification(type, value, user) {
-    if (value === false) {
-        if (core.notifications[type].includes(user))
-            core.notifications[type] = removerItemFromArray(core.notifications[type], user);
-        return false;
-    } else if (value === true) {
-        if (!core.notifications[type].includes(user))
-            core.notifications[type].push(user);
-        return true;
-    } else {
-        return core.notifications[type].includes(user);
+    if (value === false && core.notifications[type].includes(user)) {
+        core.notifications[type] = removerItemFromArray(core.notifications[type], user);
+    } else if (value === true && !core.notifications[type].includes(user)) {
+        core.notifications[type].push(user);
     }
+    return core.notifications[type].includes(user);
+}
+export function getAlertIds(params) {
+    const ids = [];
+
+    if (alerts.rgbFound.enabled) ids.push("rgbFound");
+    alerts.customs.forEach(alert => ids.push(alert.id))
+
+    return ids;
 }
 
 async function requestHours() {
@@ -171,6 +193,7 @@ async function requestHoursForPlayer(playerId) {
 async function altChecker() {
     while (true) {
         await new Promise(r => { setTimeout(() => { r() }, 5000); })
+
         const player = altCheckQueue.shift();
         if (player == undefined) continue;
         if (altCheck.playerData[player]) continue;
@@ -180,30 +203,48 @@ async function altChecker() {
 
         outcome.timestamp = Date.now();
         altCheck.playerData[player] = outcome;
-        if (outcome.possibleAlts > 0) sendAlert("possibleRgbAccountFound", {
-            bmId: outcome.main.bmId,
-            name: outcome.main.names[0],
-            numberOfPossibleAlts: outcome.possibleAlts
-        })
+
+        if (outcome.possibleAlts === 0) return; //No alts was found
+
+        const data = {
+            steamId: core.players[player]?.steamId,
+            bmId: core.players[player]?.bmId,
+            name: core.players[player]?.name,
+            count: outcome.possibleAlts,
+        }
+        const content = "";
+
+        sendAlert(content, alerts.rgbFound, data);
     }
 }
 
-function checkIfPlayerIsOnTheWatchList(player) {
-    const playerId = player.bmId;
-    if (!core.watchlist[playerId]) return false; //Player is not on the watchlist;
+function backgroundCheckEntryPoint(bmId) {
+    if (!alerts.rgbFound.enabled) return; //NO RGB Account search
 
-    const data = JSON.parse(JSON.stringify(core.watchlist[playerId]));
-    data.name = player.name;
-    data.bmId = player.bmId;
-    data.steamId = player.steamId;
-    sendAlert("watchListAlert", data);
-}
-function checkIfPlayerHasBeenBackgroundChecked(bmId) {
     if (altCheck.ignoreList[bmId]) return;     //On the ignore list
     if (altCheck.playerData[bmId]) return;    //Already checked
     if (altCheckQueue.includes(bmId)) return; //Waiting to be checked
 
     altCheckQueue.push(bmId);
+}
+function checkIfPlayerIsOnTheWatchList(player) {
+    if (!alerts.watchlist.enabled) return; //Watchlist disabled
+
+    const playerId = player.bmId;
+    if (!core.watchlist[playerId]) return false; //Player is not on the watchlist;
+
+    //SEND WATCHLIST ALERT
+
+    const data = JSON.parse(JSON.stringify(player));
+    data.note = core.watchlist[playerId].note;
+    data.adminName = core.watchlist[playerId].adminName;
+    data.adminAvatar = core.watchlist[playerId].adminAvatar;
+
+    const content = core.watchlist[playerId].notify === "only-me" ?
+        core.watchlist[playerId].notificationList.map(account => `<@${account}>`).join(" ") :
+        `<&${config.discord.staffRoleId}>`;
+
+    sendAlert(content, alerts.watchlist, data);
 }
 export function removePlayerFromTheWatchList(bmId) {
     delete core.watchlist[bmId];
@@ -212,11 +253,11 @@ export function removePlayerFromTheWatchList(bmId) {
 function loadCore() {
     try {
         const data = fs.readFileSync("./data/core.json", "utf8");
-        if (data === "") return { players: {}, watchlist: {}, lastProcessed: 0, notifications: { massReportedAbusive: [], massReportedCheating: [], susCheating: [] } };
+        if (data === "") return { players: {}, watchlist: {}, lastProcessed: 0, notifications: {} };
         return JSON.parse(data);
     } catch (error) {
         console.error(`Core loading failed. Regenerating an empty core.\n  ${error.message}`);
-        return { players: {}, watchlist: {}, lastProcessed: 0, notifications: { massReportedAbusive: [], massReportedCheating: [], susCheating: [] } }
+        return { players: {}, watchlist: {}, lastProcessed: 0, notifications: {} }
     }
 }
 function loadAltCheck() {
@@ -225,17 +266,26 @@ function loadAltCheck() {
         if (data === "") return { playerData: {}, ignoreList: {} };
         return JSON.parse(data);
     } catch (error) {
-        console.error(`AltCheck loading failed. Regenerating an empty core.\n  ${error.message}`);
+        console.error(`AltCheck loading failed. Regenerating an empty AltCheck.\n  ${error.message}`);
         return { playerData: {}, ignoreList: {} };
     }
 }
+function loadAlerts() {
+    try {
+        const data = fs.readFileSync("./config/alertConfig.json");
+        return JSON.parse(data);
+    } catch (error) {
+        throw new Error(`alertConfig.json couldn't be loaded: ${error.message}`);
+    }
+}
+
 let coreSaving = false;
 function saveCore() {
     try {
         if (coreSaving) return;
         coreSaving = true;
         fs.writeFileSync("./data/core.json", JSON.stringify(core));
-        console.log(new Date(Date.now()).toLocaleTimeString() + " | Core saved!");
+        console.log(getTimeString() + " | Core saved!");
     } catch (error) {
         console.error(error);
     } finally {
@@ -248,7 +298,7 @@ function saveAltCheck() {
         if (altCheckSaving) return;
         altCheckSaving = true;
         fs.writeFileSync("./data/altCheck.json", JSON.stringify(altCheck));
-        console.log(new Date(Date.now()).toLocaleTimeString() + " | AltCheck saved!");
+        console.log(getTimeString() + " | AltCheck saved!");
     } catch (error) {
         console.error(error);
     } finally {
@@ -266,6 +316,8 @@ async function garbageCollector() {
 }
 function deleteOldPlayerData() {
     const barrier = core.lastProcessed - 36 * 60 * 60 * 1000;
+    const dataBarrier = core.lastProcessed - 12 * 60 * 60 * 1000;
+
     for (const playerId in core.players) {
 
         const player = core.players[playerId]
@@ -276,10 +328,10 @@ function deleteOldPlayerData() {
             continue
         }
 
-        player.kills = filterOldDataFromArray(player.kills, barrier);
-        player.deaths = filterOldDataFromArray(player.deaths, barrier);
-        player.reports.cheat = filterOldDataFromArray(player.reports.cheat, barrier);
-        player.reports.toxic = filterOldDataFromArray(player.reports.toxic, barrier);
+        player.kills = filterOldDataFromArray(player.kills, dataBarrier);
+        player.deaths = filterOldDataFromArray(player.deaths, dataBarrier);
+        player.reports.cheat = filterOldDataFromArray(player.reports.cheat, dataBarrier);
+        player.reports.toxic = filterOldDataFromArray(player.reports.toxic, dataBarrier);
     }
 }
 function deleteOldWatchlistData() {
@@ -295,9 +347,11 @@ function deleteOldWatchlistData() {
 }
 function deleteOldAltData() {
     const ONE_MONTH = 30 * 24 * 60 * 60 * 1000;
+    const barrier = core.lastProcessed - ONE_MONTH;
+
     for (const alt in altCheck.playerData) {
         const timestamp = altCheck.playerData[alt].timestamp;
-        if (timestamp < (core.lastProcessed - ONE_MONTH)) {
+        if (timestamp < (barrier)) {
             delete altCheck.playerData[alt]
             console.log(`GARBAGE COLLECTION: ${alt} was removed from alt data`);
         }
@@ -313,7 +367,8 @@ function deleteOldAltData() {
 }
 
 function filterOldDataFromArray(array, barrier) {
-    return array.filter(item => item.timestamp > barrier);
+    const newArray = array.filter(item => item.timestamp > barrier);
+    return newArray;
 }
 function removerItemFromArray(array, itemToRemove) {
     return array.filter(item => item !== itemToRemove);
@@ -331,7 +386,7 @@ export async function logError(text) {
         console.error(error);
     }
 }
-function getTimeString() {
+export function getTimeString() {
     return new Date(Date.now()).toISOString().substring(0, 19).replace("T", " | ")
 }
 
