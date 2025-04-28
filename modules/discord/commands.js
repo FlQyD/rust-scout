@@ -1,5 +1,14 @@
-const commands = [
-    {
+import { alerts, getAlertIds } from "../../main.js";
+
+const commands = [];
+
+setTimeout(() => {
+    setupCommands()
+}, 500);
+
+function setupCommands() {
+
+    if (alerts.watchlist.enabled) commands.push({
         name: 'watchlist',
         description: 'Adds a player to the watchlist!',
         options: [
@@ -48,37 +57,25 @@ const commands = [
                 ],
             },
         ],
-    },
-    {
+    })
+
+    const alertIds = getAlertIds();
+    const notifyCommand = {
         name: 'notify',
-        description: 'Set notifications for specific events',
-        options: [
-            {
-                name: 'mass-reported-abusive',
-                type: 5,
-                description: 'Notify if the player is mass-reported for abusive behavior',
-                required: false,
-            },
-            {
-                name: 'mass-reported-cheating',
-                type: 5,
-                description: 'Notify if the player is mass-reported for cheating',
-                required: false,
-            },
-            {
-                name: 'sus-cheating',
-                type: 5,
-                description: 'Notify if the player is suspected of cheating',
-                required: false,
-            },
-            {
-                name: 'possible-rgb-account-found',
-                type: 5,
-                description: 'Notify if there is a possible banned alt account connected to a player.',
-                required: false,
-            },
-        ],
-    },
-];
+        description: 'Set notifications for specific alerts',
+        options: []
+    }
+
+    notifyCommand.options = alertIds.map(alert => {
+        return {
+            name: alert.toLowerCase(),
+            type: 5,
+            description: `Send a ping for me when a ${alert} happens.`,
+            required: false,
+        }
+    })
+
+    commands.push(notifyCommand);
+}
 
 export default commands;

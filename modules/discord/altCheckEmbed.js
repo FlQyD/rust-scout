@@ -5,7 +5,7 @@ import { altCheck } from '../../main.js';
 export function showPlayerProfile(interaction, bmId) {
     const outcome = altCheck.playerData[bmId];
     if (outcome.possibleAlts == 0) return interaction.reply({ content: "Nothing connected to this account", flags: 64 });
-    
+
     const data = getEmbedData(outcome, 0);
 
     interaction.reply({ content: "", embeds: [getEmbed(data)], components: [getButtons(outcome, 0)], flags: 64 })
@@ -15,14 +15,14 @@ export async function pageSwitchButtonPushed(interaction) {
     const bmId = customId.split("-")[3];
 
     const outcome = altCheck.playerData[bmId];
-    
+
     const index = Number(customId.split("-")[4]);
 
     const data = getEmbedData(outcome, index)
     const newEmbed = getEmbed(data);
     const newButtons = getButtons(outcome, index);
 
-    await interaction.update({ embeds: [newEmbed], components: [newButtons ], flags: 64});
+    await interaction.update({ embeds: [newEmbed], components: [newButtons], flags: 64 });
 }
 function getEmbedData(outcome, index) {
     const data = {};
@@ -39,11 +39,11 @@ function getEmbedData(outcome, index) {
     data.altAccountAge = outcome.alts[index].bmAccountCreated;
     data.sameFriends = getSameItems(outcome.main.friends, outcome.alts[index].friends);
     data.topNameMatches = getTopNameMatches(outcome.main.names, outcome.alts[index].names);
-    return data;    
+    return data;
 }
-function getEmbed(data) {        
+function getEmbed(data) {
     return new EmbedBuilder()
-        .setTitle(`Account ${data.altIndex+1}/${data.altsCount} (${data.altName})`)
+        .setTitle(`Account ${data.altIndex + 1}/${data.altsCount} (${data.altName})`)
         .setDescription(
             "```" +
             `---- MAIN ----
@@ -84,17 +84,17 @@ ${itemNameStyled.str2} | ${item.original.str2}\`\`\``,
         );
 }
 function getButtons(outcome, index) {
-    const isThereMoreHigher = outcome.alts.length > (index+1);    
+    const isThereMoreHigher = outcome.alts.length > (index + 1);
     const isThereMoreLower = index < 1;
 
     return new ActionRowBuilder().addComponents(
         new ButtonBuilder()
-            .setCustomId(`alt-check-prev-${outcome.main.bmId}-${index-1}`)
+            .setCustomId(`alt-check-prev-${outcome.main.bmId}-${index - 1}`)
             .setStyle(ButtonStyle.Secondary)
             .setEmoji("◀️")
             .setDisabled(isThereMoreLower),
         new ButtonBuilder()
-            .setCustomId(`alt-check-next-${outcome.main.bmId}-${index+1}`)
+            .setCustomId(`alt-check-next-${outcome.main.bmId}-${index + 1}`)
             .setStyle(ButtonStyle.Secondary)
             .setEmoji("▶️")
             .setDisabled(!isThereMoreHigher)
@@ -245,7 +245,7 @@ function getColoredNames(obj) {
         str2: str2Styled
     }
 }
-const ONE_DAY = 24*60*60*1000;
+const ONE_DAY = 24 * 60 * 60 * 1000;
 function getTimeString(timestamp) {
     let timeString = ""
 
