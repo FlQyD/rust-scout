@@ -43,11 +43,11 @@ function calculateNewOutcome(outcome) {
     newOutcome.alts = [];
 
     alts.forEach(alt => {
-        const similar = checkIfConnection(player, alt) 
+        const similar = checkIfConnection(player, alt)
 
         if (similar.highestMatch <= 80 && similar.sameFriendCount == 0) return;
 
-        newOutcome.possibleAlts = newOutcome.possibleAlts+1;
+        newOutcome.possibleAlts = newOutcome.possibleAlts + 1;
         newOutcome.main = player;
         alt.highestMatch = similar.highestMatch;
         alt.sameFriendCount = similar.sameFriendCount;
@@ -72,13 +72,13 @@ function checkIfConnection(player1, player2) {
     let highestMatch = 0;
     for (let i = 0; i < player1.names.length; i++) {
         let name1 = player1.names[i];
-        if (name1.length < 4) continue; 
+        if (name1.length < 4) continue;
         if (name1.includes("Survivor")) name1 = name1.replaceAll("Survivor", "")
         if (name1.includes("kiosk")) name1 = name1.replaceAll("kiosk", "")
         for (let j = 0; j < player2.names.length; j++) {
             const name2 = player2.names[j];
             if (name2.length < 4) continue;
-            
+
             if (name1.includes("Survivor")) name1 = name1.replaceAll("Survivor", "")
             if (name1.includes("kiosk")) name1 = name1.replaceAll("kiosk", "")
             const dif = levenshteinDistance(name1, name2)
@@ -108,7 +108,7 @@ async function getEACBannedConnections(bmId) {
         const data = await response.json();
 
         return data.included.map((item, index) => {
-            if (item.attributes.private) return null; 
+            if (item.attributes.private) return null;
             return {
                 bmId: item.id,
                 lastBan: new Date(getLastBan(item.id, data.data)).getTime()
@@ -144,6 +144,10 @@ async function buildProfile({ bmId, lastBan }, alt = false) {
 
         if (playerProfile.steamId === "unknown") {
             const steamId = await getSteamId(bmId);
+            if (steamId !== "unknown") {
+                console.log(`STEAM ID FOUND: ${steamId}`);
+                
+            }
             playerProfile.steamId = steamId;
         }
 
@@ -153,14 +157,14 @@ async function buildProfile({ bmId, lastBan }, alt = false) {
 
             const historicFriends = await getHistoricFriends(playerProfile.steamId);
             historicFriends.forEach(friend => {
-                if(!playerProfile.friends.includes(friend))
-                    playerProfile.friends.push(friend)
+                if (playerProfile.friends.includes(friend)) return;
+
+                playerProfile.friends.push(friend)
             })
         }
         return playerProfile;
     } catch (error) {
         console.error(error);
-
         return "error"
     }
 }
@@ -185,10 +189,10 @@ async function getSteamId(bmId) {
     if (!config.flqydDev?.accessToken) return "unknown";
     try {
         const resp = await fetch(`https://rust-api.flqyd.dev/id/bmId/${bmId}?accessToken=${config.flqydDev.accessToken}`);
-        if (resp.status != 200) return "unknown";
-
         const data = await resp.json();
-        return data.connected.steamId;
+
+        if(data.data[0]?.steamId) return data.data[0]?.steamId;
+        return "unknown";
     } catch (error) {
         console.error(error);
         return "unknown";
@@ -196,8 +200,8 @@ async function getSteamId(bmId) {
 }
 async function getHistoricFriends(steamId) {
     if (!config.flqyd?.accessToken) return [];
-    
-    try {  
+
+    try {
         const resp = await fetch(`https://rust-api.flqyd.dev/steamFriends/${steamId}?accessToken=${config.flqydDev.accessToken}`)
         const data = resp.json().data;
 
@@ -230,7 +234,7 @@ function levenshteinDistance(str1, str2) {
     return distGrid[str1.length][str2.length];
 }
 
-function getLastBan(bmId, bmData) {    
+function getLastBan(bmId, bmData) {
     for (const banItem of bmData) {
         if (banItem.id.split(":")[1] !== bmId) continue;
         return banItem.attributes.metadata.rustBans.lastBan;

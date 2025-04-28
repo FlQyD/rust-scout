@@ -43,4 +43,6 @@ export async function sendAlert(content, alert, data) {
     return true;
 }
 
-client.login(config.discord.botAuthToken);
+setTimeout(() => {
+    client.login(config.discord.botAuthToken);
+}, 1000);
