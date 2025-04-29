@@ -143,22 +143,17 @@ async function buildProfile({ bmId, lastBan }, alt = false) {
         });
 
         if (playerProfile.steamId === "unknown") {
-            const steamId = await getSteamId(bmId);
-            if (steamId !== "unknown") {
-                console.log(`STEAM ID FOUND: ${steamId}`);
-                
-            }
+            const steamId = await getSteamId(bmId);        
             playerProfile.steamId = steamId;
         }
 
         if (playerProfile.steamId != "unknown") {
             const currentFriendList = await getSteamFriends(playerProfile.steamId);
-            currentFriendList.forEach(item => playerProfile.friends.push(item));
+            playerProfile.friends = [...currentFriendList]
 
             const historicFriends = await getHistoricFriends(playerProfile.steamId);
             historicFriends.forEach(friend => {
                 if (playerProfile.friends.includes(friend)) return;
-
                 playerProfile.friends.push(friend)
             })
         }
@@ -172,6 +167,7 @@ async function buildProfile({ bmId, lastBan }, alt = false) {
 let lastSteamRateLimit = 0;
 async function getSteamFriends(steamId) {
     if (!config.steam.apiKey) return;
+
     if (Date.now() - lastSteamRateLimit < ONE_DAY) return [];
     const resp = await fetch(`https://api.steampowered.com/ISteamUser/GetFriendList/v0001/?key=${config.steam.apiKey}&steamid=${steamId}&relationship=friend`)
 
@@ -188,9 +184,8 @@ async function getSteamFriends(steamId) {
 async function getSteamId(bmId) {
     if (!config.flqydDev?.accessToken) return "unknown";
     try {
-        const resp = await fetch(`https://rust-api.flqyd.dev/id/bmId/${bmId}?accessToken=${config.flqydDev.accessToken}`);
-        const data = await resp.json();
-
+        const resp = await fetch(`https://rust-api.flqyd.dev/id/${bmId}?accessToken=${config.flqydDev.accessToken}`);
+        const data = await resp.json();        
         if(data.data[0]?.steamId) return data.data[0]?.steamId;
         return "unknown";
     } catch (error) {
@@ -199,16 +194,15 @@ async function getSteamId(bmId) {
     }
 }
 async function getHistoricFriends(steamId) {
-    if (!config.flqyd?.accessToken) return [];
-
+    if (!config.flqydDev?.accessToken) return [];
     try {
         const resp = await fetch(`https://rust-api.flqyd.dev/steamFriends/${steamId}?accessToken=${config.flqydDev.accessToken}`)
-        const data = resp.json().data;
+        const data = await resp.json();
 
-        return data.friends.map(item => returnArr.push(item.steamId));
+        return data.data.friends.map(item => item.steamId);
     } catch (error) {
-        return [];
         console.error(error);
+        return [];
     }
 }
 
