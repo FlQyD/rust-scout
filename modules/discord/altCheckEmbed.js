@@ -26,13 +26,13 @@ export async function pageSwitchButtonPushed(interaction) {
 }
 function getEmbedData(outcome, index) {
     const data = {};
-    data.mainName = outcome.main.names[index];
+    data.mainName = outcome.main.names[0];
     data.mainBmId = outcome.main.bmId;
     data.mainSteamId = outcome.main.steamId;
     data.mainAccountAge = outcome.main.bmAccountCreated;
     data.altsCount = outcome.alts.length
     data.altIndex = index;
-    data.altName = outcome.alts[index].names[index];
+    data.altName = outcome.alts[index].names[0];
     data.altBmId = outcome.alts[index].bmId;
     data.altSteamId = outcome.alts[index].steamId;
     data.altLastBan = outcome.alts[index].daysSinceLastBan;

@@ -95,7 +95,7 @@
         "enabled": true,
         "embed": {
             "description": "**[{NAME}](https://www.battlemetrics.com/rcon/players/{BM_ID})** is connected to {COUNT} rust game banned account.",
-            "authorName": "System - RGB tracker",
+            "authorName": "System - RGB Tracker",
             "buttons": {
                 "rgbShowMore": true,
                 "rgbIgnore": true
