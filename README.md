@@ -50,3 +50,5 @@ Use this command to add or remove players from the watchlist. You will get notif
         - `apiKey`(optional): Steam API Key for the BOT that it can use to request steam friends, when he tries to connect accounts.
 ## Start: 
  - `npm run start`: Start a pm2 process with the name "rustScout".
+
+![Rust scout](https://rust-scout.flqyd.dev/images/rust-scout-small.png)

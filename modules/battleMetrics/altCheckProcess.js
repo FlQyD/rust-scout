@@ -166,7 +166,7 @@ async function buildProfile({ bmId, lastBan }, alt = false) {
 
 let lastSteamRateLimit = 0;
 async function getSteamFriends(steamId) {
-    if (!config.steam.apiKey) return;
+    if (!config.steam.apiKey) return [];
 
     if (Date.now() - lastSteamRateLimit < ONE_DAY) return [];
     const resp = await fetch(`https://api.steampowered.com/ISteamUser/GetFriendList/v0001/?key=${config.steam.apiKey}&steamid=${steamId}&relationship=friend`)
