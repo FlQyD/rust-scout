@@ -25,7 +25,7 @@ async function warmUp() {
     resetNotificationSettings();
 
     requestHours();
-    if(alerts.rgbFound.enabled) altChecker();
+    if (alerts.rgbFound.enabled) altChecker();
     garbageCollector();
 
     //Populate hourRequestQueue on start
@@ -108,7 +108,7 @@ export function updatePlayer(bmId, steamId, name, action, data) {
             player.reports.toxic.push({ timestamp: data.timestamp, reporter: data.reporterBmId });
         }
     }
-    checkPlayerIfAlertIsNeeded(player, core.lastProcessed);
+    checkPlayerIfAlertIsNeeded(player, core.lastProcessed, core.notifications);
 }
 function newPlayerProfile(bmId, steamId, name) {
     return {
@@ -186,7 +186,7 @@ async function requestHoursForPlayer(playerId) {
         return 5000;
     }
     player.hours = Math.floor(response.timePlayed / 3600);
-    checkPlayerIfAlertIsNeeded(player, core.lastProcessed);
+    checkPlayerIfAlertIsNeeded(player, core.lastProcessed, core.notifications);
     return response.extraTime;
 }
 
@@ -212,7 +212,9 @@ async function altChecker() {
             name: core.players[player]?.name,
             count: outcome.possibleAlts,
         }
-        const content = "";
+        const content = core.notifications["rgbFound"].length == 0 ?
+            "" :
+            `<@${core.notifications["rgbFound"].join("><@")}>`;
 
         sendAlert(content, alerts.rgbFound, data);
     }

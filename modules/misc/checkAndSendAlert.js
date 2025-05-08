@@ -4,7 +4,7 @@ import { sendAlert } from "../discord/discordBot.js";
 /**
  * @param {Object} player - Player object from the core.players
  */
-export default async function checkPlayerIfAlertIsNeeded(player, now) {
+export default async function checkPlayerIfAlertIsNeeded(player, now, notification) {
     const barrier = now - 12 * 60 * 60 * 1000;
 
     const recentKills = player.kills.filter(kill => kill.timestamp > barrier).length;
@@ -60,8 +60,16 @@ export default async function checkPlayerIfAlertIsNeeded(player, now) {
             }
         }        
         if (!triggered) continue;
+        
+        console.log(alert.id);
+        console.log(notification[alert.id.toLowerCase()]);
+        
 
-        if (await sendAlert("", alert, playerData)) { //Alert Send
+        const content = notification[alert.id.toLowerCase()].length == 0 ? 
+            "":
+            `<@${notification[alert.id.toLowerCase()].join("> <@")}>`;
+
+        if (await sendAlert(content, alert, playerData)) { //Alert Send
             player.lastAlerts[alert.id] = Date.now();
             console.log(`${getTimeString()} | "${alert.id}" was sent to ${playerData.bmId}`);    
         }
