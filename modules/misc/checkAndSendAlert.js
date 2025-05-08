@@ -59,12 +59,7 @@ export default async function checkPlayerIfAlertIsNeeded(player, now, notificati
                 break;
             }
         }        
-        if (!triggered) continue;
-        
-        console.log(alert.id);
-        console.log(notification[alert.id.toLowerCase()]);
-        
-
+        if (!triggered) continue;        
         const content = notification[alert.id.toLowerCase()].length == 0 ? 
             "":
             `<@${notification[alert.id.toLowerCase()].join("> <@")}>`;
