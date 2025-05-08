@@ -1,22 +1,21 @@
 {
-  "type": "module",
-  "dependencies": {
-    "discord.js": "^14.17.3"
-  },
-  "name": "rust-scout-public",
-  "version": "2.0.1",
-  "description": "A Node.js application that tracks player activity based on battlemetics Activity api, and sends notifications about various players.",
-  "main": "main.js",
-  "scripts": {
-    "start": "pm2 start main.js --name rustScout",
-    "dev": "node --watch main.js"
-  },
-  "keywords": [
-    "rust",
-    "admin",
-    "battlemetics",
-    "alert"
-  ],
-  "author": "FlQyD",
-  "license": "MIT"
+    "type": "module",
+    "dependencies": {
+        "discord.js": "^14.17.3"
+    },
+    "name": "rust-scout-public",
+    "version": "2.0.1",
+    "description": "A Node.js application that tracks player activity based on battlemetics Activity api, and sends notifications about various players.",
+    "main": "main.js",
+    "scripts": {
+        "start": "pm2 start main.js --name rustScout"
+    },
+    "keywords": [
+        "rust",
+        "admin",
+        "battlemetics",
+        "alert"
+    ],
+    "author": "FlQyD",
+    "license": "MIT"
 }
