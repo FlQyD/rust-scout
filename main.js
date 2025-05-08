@@ -324,7 +324,7 @@ function deleteOldPlayerData() {
 
         const player = core.players[playerId]
         if (player.lastUpdated < barrier) {
-            console.log(`GARBAGE COLLECTION: ${player.name} was deleted with the ID of ${player.bmId}`);
+            console.log(`${getTimeString()} | GARBAGE COLLECTION: ${player.name} was deleted with the ID of ${player.bmId}`);
             delete core.players[playerId];
 
             continue
@@ -341,7 +341,7 @@ function deleteOldWatchlistData() {
     for (const watchlistId in core.watchlist) {
         const watchlistItem = core.watchlist[watchlistId]
         if (watchlistItem.timestamp < barrier) {
-            console.log(`GARBAGE COLLECTION: ${watchlistId} was deleted from the watchlist!`);
+            console.log(`${getTimeString()} | GARBAGE COLLECTION: ${watchlistId} was deleted from the watchlist!`);
             delete core.watchlist[watchlistId];
             continue
         }
@@ -355,14 +355,14 @@ function deleteOldAltData() {
         const timestamp = altCheck.playerData[alt].timestamp;
         if (timestamp < (barrier)) {
             delete altCheck.playerData[alt]
-            console.log(`GARBAGE COLLECTION: ${alt} was removed from alt data`);
+            console.log(`${getTimeString()} | GARBAGE COLLECTION: ${alt} was removed from alt data`);
         }
     }
     for (const ignored in altCheck.ignoreList) {
         const timestamp = altCheck.ignoreList[ignored];
         if (timestamp < (core.lastProcessed - ONE_MONTH * 6)) {
             delete altCheck.ignoreList[ignored]
-            console.log(`GARBAGE COLLECTION: Ignored ${ignored} was removed from alt ignore list.`);
+            console.log(`${getTimeString()} | GARBAGE COLLECTION: Ignored ${ignored} was removed from alt ignore list.`);
         }
     }
 
