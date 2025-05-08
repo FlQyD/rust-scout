@@ -4,7 +4,8 @@ A Node.js application, that logs suspicious users based on BattleMetrics activit
 The project has two build in alerts: 
 - `WATCHLIST ALERT`: Alert send to the discord when a player from the watchlist joins the server. 
 - `RGB Tracker`: Possible rust game banned alt account was found
-Upon those built in alerts, everyone can set their own desired alerts they would like to see in the `config/alertConfig.json`, you don't need to edit JSON in order to make your own alert you can go to `https://rust-scout.flqyd.dev` to generate your own config.
+
+Upon those built in alerts, everyone can set their own desired alerts they would like to see in the `config/alertConfig.json`, you don't need to edit JSON in order to make your own alert you can go to https://rust-scout.flqyd.dev to generate your own config.
 Every fresh instance has three default alerts that can be changed: `massReportedCheating`, `massReportedAbusive`, `susAlertCheating`
 - `massReportedCheating` alert will be sent when a player receives more then 3 cheating report arrives for a player in the last 12 hours.
 - `massReportedAbusive` alert will be sent when a player receives more then 3 abusive report arrives for a player in teh last 12 hours.
