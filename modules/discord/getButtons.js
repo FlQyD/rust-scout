@@ -34,5 +34,5 @@ export default function getButtons(data, buttons) {
                 .setStyle(ButtonStyle.Secondary)
         )
     }
-    return actionRow;
+    return actionRow.components.length > 0 ? actionRow : null;
 }

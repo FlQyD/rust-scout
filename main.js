@@ -15,6 +15,7 @@ if (!fs.existsSync("./data")) fs.mkdirSync("./data");
 export const core = loadCore();
 export const altCheck = loadAltCheck();
 export const alerts = loadAlerts();
+export const servers = [];
 
 const altCheckQueue = [];
 const hourRequestQueue = [];
@@ -23,7 +24,8 @@ warmUp();
 async function warmUp() {
     await checkConfig();
     resetNotificationSettings();
-
+    await requestServers();
+    
     requestHours();
     if (alerts.rgbFound.enabled) altChecker();
     garbageCollector();
@@ -151,11 +153,12 @@ function updateNotification(type, value, user) {
     }
     return core.notifications[type].includes(user);
 }
-export function getAlertIds(params) {
+export function getAlertIds() {
     const ids = [];
 
     if (alerts.rgbFound.enabled) ids.push("rgbFound");
-    alerts.customs.forEach(alert => ids.push(alert.id))
+    if (alerts.flyHackKick.enabled) ids.push("flyHackKick");
+    alerts.customs.forEach(alert => ids.push(alert.id));
 
     return ids;
 }
@@ -212,10 +215,8 @@ async function altChecker() {
             name: core.players[player]?.name,
             count: outcome.possibleAlts,
         }
-        const content = core.notifications["rgbFound"].length == 0 ?
-            "" :
-            `<@${core.notifications["rgbFound"].join("><@")}>`;
-
+        const content = getContent("rgbFound");
+    
         sendAlert(content, alerts.rgbFound, data);
     }
 }
@@ -392,6 +393,28 @@ export function getTimeString() {
     return new Date(Date.now()).toISOString().substring(0, 19).replace("T", " | ")
 }
 
+async function requestServers() {
+    const url = `https://api.battlemetrics.com/servers?version=^0.1.0&filter[rcon]=true&page[size]=100&access_token=${config.battleMetrics.accessToken}`
+    const resp = await fetch(url);
+    const data = await resp.json();
+
+    for (const server of data.data) {
+        const newServer = {};
+        newServer.id = server.id;
+        newServer.name = server.attributes.name;
+        servers.push(newServer)
+    }
+    console.log(`                      ┌─────── (If you don't see some of your server, your BattleMetrics API Key has the wrong permissions)`);
+    console.log(`${getTimeString()} ├ Servers that will be watched:\n                      ├─ ${servers.map(server => server.name).join("\n                      ├─ ")}`);
+    console.log(`                      └───────`);
+}
+
+export function getContent(alertId) {
+    alertId = alertId.toLowerCase();
+    return core.notifications[alertId].length === 0 ?
+        "" :
+        `<@${core.notifications[alertId].join("><@")}>`;
+}
 
 
 process.on('uncaughtException', async error => {

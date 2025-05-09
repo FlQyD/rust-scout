@@ -1,10 +1,11 @@
 import config from "../../config/config.js";
-import { updatePlayer } from "../../main.js";
+import { alerts, updatePlayer } from "../../main.js";
+import { addToFlyHackQueue } from "../misc/flyHackWarning.js";
 
 
 export default async function requestAndProcessActivity(core) {
     try {
-        const url = "https://api.battlemetrics.com/activity?version=^0.1.0&tagTypeMode=and&filter[types][whitelist]=rustLog:playerReport,rustLog:playerDeath:PVP,event:addPlayer&include=organization,user&page[size]=" + config.battleMetrics.activityLinesRequested + "&page[rel]=next&access_token=" + config.battleMetrics.accessToken;
+        const url = `https://api.battlemetrics.com/activity?version=^0.1.0&tagTypeMode=and&filter[types][whitelist]=rustLog:playerWarning,rustLog:playerReport,rustLog:playerDeath:PVP,event:addPlayer&filter[timestamp]=2025-02-06T23:00:00.000Z:&include=organization,user&page[size]=${config.battleMetrics.activityLinesRequested}&access_token=${config.battleMetrics.accessToken}`;
         const data = await fetch(url);
         const resp = await data.json();
 
@@ -14,11 +15,10 @@ export default async function requestAndProcessActivity(core) {
     }
 }
 
-async function processData(activityMessages, core) {
+async function processData(activityMessages, core) {    
     activityMessages = activityMessages.reverse();
     activityMessages.forEach(activityMessage => {
-        if (activityMessage.type !== "activityMessage") return;
-
+        if (activityMessage.type !== "activityMessage") return;       
         const messageTimestamp = new Date(activityMessage.attributes.timestamp).getTime();
         if (core.lastProcessed >= messageTimestamp) return;
 
@@ -75,10 +75,15 @@ async function processData(activityMessages, core) {
                     }
                 );
                 break;
+            case "rustLog:playerWarning":
+                if (alerts.flyHackKick.enabled && activityMessage.attributes.message.includes("FlyHack"))
+                    addToFlyHackQueue(activityMessage);
+                break;
             default:
-                console.error(`UNKNOWN ACTIVITY MESSAGE: \n${activityMessage}`);
+                console.error(`UNKNOWN ACTIVITY MESSAGE:`);
+                console.error(activityMessage);
+                
         }
-
         core.lastProcessed = messageTimestamp;
     });
 }
