@@ -100,6 +100,17 @@
                 "rgbShowMore": true,
                 "rgbIgnore": true
             }
-        } 
+        }
+    },
+    "flyHackKick": {
+        "enabled": true,
+        "channel": "1370264501315702846",
+        "embed": {
+            "description": "**[{NAME}](https://www.battlemetrics.com/rcon/players/{BM_ID})** was kicked for flyhack from [{SERVER_NAME}](https://www.battlemetrics.com/rcon/servers/{SERVER_ID}).\n```\nname:    {NAME}\nsteamID: {STEAM_ID}\nbmID:    {BM_ID}\nhours:   {HOURS}\n\nviolation level: {VIOLATION_LEVEL}\n```\nteleport: \n```teleportpos \"{LOCATION}\"\n```",
+            "url": "https://www.battlemetrics.com/rcon/players/{BM_ID}",
+            "color": 16763904,
+            "footer": "{KICK_MESSAGE}",
+            "buttons": {}
+        }
     }
 }
