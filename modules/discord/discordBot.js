@@ -10,15 +10,15 @@ import buttonPressed from './buttonPressed.js';
 
 const client = new Client({ intents: [GatewayIntentBits.Guilds] });
 
-let channel = null;
+let mainChannel = null;
 
 client.once('ready', async () => {
     const guild = await client.guilds.fetch(config.discord.guildId);
-    channel = await guild.channels.fetch(config.discord.channelId);
+    mainChannel = await guild.channels.fetch(config.discord.channelId);
 
     const rest = new REST({ version: '10' }).setToken(config.discord.botAuthToken);
     await rest.put(Routes.applicationCommands(config.discord.botApplicationId), { body: commands });
-    console.log(`${getTimeString()} | ${client.user.tag} logged in and found the channel with the ID: ${channel.id} | ${channel.name}`);
+    console.log(`${getTimeString()} | ${client.user.tag} logged in and found the channel with the ID: ${mainChannel.id} | ${mainChannel.name}`);
 });
 
 client.on(Events.InteractionCreate, async (interaction) => {
@@ -35,7 +35,19 @@ export async function sendAlert(content, alert, data) {
         const embed = getEmbed(data, alert)
         const buttons = getButtons(data, alert.embed.buttons)
 
-        await channel.send({ content: content, embeds: [embed], components: [buttons] });
+        const payload = {
+            content, embeds: [embed],
+            ...(buttons && { components: [buttons] })
+        };
+
+        //SEND MESSAGE
+        if (alert.channel) {
+            const guild = await client.guilds.fetch(config.discord.guildId);
+            const channel = await guild.channels.fetch(alert.channel)
+            await channel.send(payload);
+        }else
+            await mainChannel.send(payload);
+
     } catch (error) {
         console.log(error);
         return false;
