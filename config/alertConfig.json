@@ -1,7 +1,19 @@
 {
     "customs": [
         {
-            "id": "massReportedCheating",
+            "embed": {
+                "title": "MASS REPORTED - CHEATING",
+                "url": "https://www.battlemetrics.com/rcon/players/{BM_ID}",
+                "description": "```name:    {NAME}\nbmId:    {BM_ID}\nsteamID: {STEAM_ID}\nreports: {RECENT_CHEATING_REPORTS}\n\nhours:  {HOURS}\nKILLS:  {RECENT_KILLS} \nDEATHS: {RECENT_DEATHS}\nK/D:    {RECENT_KD}```\nThis player received more than 3 cheating reports in the last 12 hours.",
+                "authorName": "",
+                "authorIcon": "",
+                "footer": "",
+                "color": 16725576,
+                "buttons": {
+                    "check": true
+                }
+            },
+            "id": "mass-reported-cheating",
             "name": "MASS REPORTED - CHEATING",
             "triggers": [
                 {
@@ -11,19 +23,22 @@
                         "value": 3
                     }
                 }
-            ],
+            ]
+        },
+        {
             "embed": {
-                "description": "```name:    {NAME}\nbmId:    {BM_ID}\nsteamID: {STEAM_ID}\nreports: {RECENT_CHEATING_REPORTS}\n\nhours:  {HOURS}\nKILLS:  {RECENT_KILLS} \nDEATHS: {RECENT_DEATHS}\nK/D:    {RECENT_KD}```\nThis player received more than 3 cheating reports in the last 12 hours.",
-                "title": "MASS REPORTED - CHEATING",
+                "title": "MASS REPORTED - ABUSIVE",
                 "url": "https://www.battlemetrics.com/rcon/players/{BM_ID}",
+                "description": "```name:    {NAME}\nbmId:    {BM_ID}\nsteamID: {STEAM_ID}\nreports: {RECENT_ABUSIVE_REPORT}```\nThis player received more than 3 abusive reports in the last 12 hours.",
+                "authorName": "",
+                "authorIcon": "",
+                "footer": "",
                 "color": 16725576,
                 "buttons": {
                     "check": true
                 }
-            }
-        },
-        {
-            "id": "massReportedAbusive",
+            },
+            "id": "mass-reported-abusive",
             "name": "MASS REPORTED - ABUSIVE",
             "triggers": [
                 {
@@ -33,19 +48,22 @@
                         "value": 3
                     }
                 }
-            ],
+            ]
+        },
+        {
             "embed": {
-                "description": "```name:    {NAME}\nbmId:    {BM_ID}\nsteamID: {STEAM_ID}\nreports: {RECENT_ABUSIVE_REPORT}```\nThis player received more than 3 abusive reports in the last 12 hours.",
-                "title": "MASS REPORTED - ABUSIVE",
+                "title": "SUS ALERT - CHEATING",
                 "url": "https://www.battlemetrics.com/rcon/players/{BM_ID}",
+                "description": "```name:    {NAME}\nbmId:    {BM_ID}\nsteamID: {STEAM_ID}\nreports: {RECENT_CHEATING_REPORTS}\nhours:   {HOURS}\n\nkills:  {RECENT_KILLS}\ndeaths: {RECENT_DEATHS}\nK/D:    {RECENT_KD}```\nLow hour player reached a high K/D .",
+                "authorName": "",
+                "authorIcon": "",
+                "footer": "",
                 "color": 16725576,
                 "buttons": {
                     "check": true
                 }
-            }
-        },
-        {
-            "id": "susAlertCheating",
+            },
+            "id": "sus-alert-cheating",
             "name": "SUS ALERT - CHEATING",
             "triggers": [
                 {
@@ -62,55 +80,52 @@
                         "value": 150
                     }
                 }
-            ],
-            "embed": {
-                "description": "```name:    {NAME}\nbmId:    {BM_ID}\nsteamID: {STEAM_ID}\nreports: {RECENT_CHEATING_REPORTS}\nhours:   {HOURS}\n\nkills:  {RECENT_KILLS}\ndeaths: {RECENT_DEATHS}\nK/D:    {RECENT_KD}```\nLow hour player reached a high K/D .",
-                "title": "SUS ALERT - CHEATING",
-                "url": "https://www.battlemetrics.com/rcon/players/{BM_ID}",
-                "color": 16725576,
-                "buttons": {
-                    "check": true
-                }
-            }
+            ]
         }
     ],
     "watchlist": {
-        "enabled": true,
-        "id": "watchlistAlert",
-        "name": "WATCHLIST ALERT",
         "embed": {
-            "description": "{NAME} joined from the watchlist.\n```steam ID: {STEAM_ID}\n    bmID: {BM_ID}\n    name: {NAME}\n    note: {NOTE}```",
             "title": "WATCHLIST ALERT",
-            "color": 4634623,
             "url": "https://www.battlemetrics.com/rcon/players/{BM_ID}",
+            "description": "{NAME} joined from the watchlist.\n```steam ID: {STEAM_ID}\n    bmID: {BM_ID}\n    name: {NAME}\n    note: {NOTE}```",
             "authorName": "added to watchlist by {ADMIN_NAME}",
             "authorIcon": "{ADMIN_AVATAR}",
+            "footer": "",
+            "color": 4634623,
             "buttons": {
                 "check": true,
                 "watchlistRemove": true
             }
-        }
+        },
+        "enabled": true
     },
     "rgbFound": {
-        "enabled": true,
         "embed": {
-            "description": "**[{NAME}](https://www.battlemetrics.com/rcon/players/{BM_ID})** is connected to {COUNT} rust game banned account.",
+            "title": "",
+            "url": "",
+            "description": "**[{NAME}](https://www.battlemetrics.com/rcon/players/{BM_ID})** is connected to **{COUNT}** rust game banned account.",
             "authorName": "System - RGB Tracker",
+            "authorIcon": "",
+            "footer": "",
+            "color": 5131854,
             "buttons": {
                 "rgbShowMore": true,
                 "rgbIgnore": true
             }
-        }
+        },
+        "enabled": true
     },
     "flyHackKick": {
-        "enabled": true,
-        "channel": "1370264501315702846",
         "embed": {
-            "description": "**[{NAME}](https://www.battlemetrics.com/rcon/players/{BM_ID})** was kicked for flyhack from [{SERVER_NAME}](https://www.battlemetrics.com/rcon/servers/{SERVER_ID}).\n```\nname:    {NAME}\nsteamID: {STEAM_ID}\nbmID:    {BM_ID}\nhours:   {HOURS}\n\nviolation level: {VIOLATION_LEVEL}\n```\nteleport: \n```teleportpos \"{LOCATION}\"\n```",
-            "url": "https://www.battlemetrics.com/rcon/players/{BM_ID}",
-            "color": 16763904,
+            "title": "",
+            "url": "",
+            "description": "**[{NAME}](https://www.battlemetrics.com/rcon/players/{BM_ID})** was kicked for flyhack from [{SERVER_NAME}](https://www.battlemetrics.com/rcon/servers/{SERVER_ID}).\n```name:    {NAME}\nsteamID: {STEAM_ID}\nbmID:    {BM_ID}\nhours:   {HOURS}\n\nviolation level: {VIOLATION_LEVEL}\n```\nteleport: \n```teleportpos \"{LOCATION}\"\n```",
+            "authorName": "",
+            "authorIcon": "",
             "footer": "{KICK_MESSAGE}",
+            "color": 16763904,
             "buttons": {}
-        }
+        },
+        "enabled": true
     }
 }
