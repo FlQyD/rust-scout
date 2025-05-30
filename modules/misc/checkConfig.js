@@ -32,12 +32,17 @@ async function checkForCredentials() {
     }
 }
 
-async function checkDiscordBotAuthAndPrivileges() {
+async function checkDiscordBotAuthAndPrivileges(count = 0) {
     const client = new Client({ intents: [GatewayIntentBits.Guilds] });
     try {
         await client.login(config.discord.botAuthToken);
     } catch (error) {
-        throw new Error(`DISCORD: ${error.message}`);
+        client.destroy();
+        if (count >= 2) throw new Error(`DISCORD FATAL: ${error.message}`);
+
+        console.error(`DISCORD ATTEMPT(${count + 1}): ${error.message}`);
+        await new Promise(res => setTimeout(res, 5000));
+        return await checkDiscordBotAuthAndPrivileges(count + 1);
     }
 
     client.once('ready', async () => {
@@ -52,7 +57,7 @@ async function checkDiscordBotAuthAndPrivileges() {
             if (!permissions.has('SendMessages')) throw new Error(`The Discord Bot is missing the permission to send messages to ${channel.name} | Channel ID: ${channel.id}`);
             if (!permissions.has('EmbedLinks')) throw new Error(`The Discord Bot is missing the permission to send embed messages to ${channel.name} | Channel ID: ${channel.id}`);
         } catch (error) {
-            throw new Error(`DISCORD: ${error.message}`);
+            throw new Error(`DISCORD CHECK: ${error.message}`)
         } finally {
             client.destroy();
         }

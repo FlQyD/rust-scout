@@ -1,6 +1,6 @@
 import fs from 'fs';
 import config from "./config/config.js";
-import { sendAlert } from "./modules/discord/discordBot.js";
+import { sendAlert, startDiscordBot } from "./modules/discord/discordBot.js";
 
 import { altCheckProcess } from "./modules/battleMetrics/altCheckProcess.js";
 import requestAndProcessActivity from "./modules/battleMetrics/requestActivity.js";
@@ -23,6 +23,7 @@ const hourRequestQueue = [];
 warmUp();
 async function warmUp() {
     await checkConfig();
+    await startDiscordBot();
     resetNotificationSettings();
     await requestServers();
     
