@@ -11,6 +11,7 @@ import buttonPressed from './buttonPressed.js';
 const client = new Client({ intents: [GatewayIntentBits.Guilds] });
 
 let mainChannel = null;
+let isRunning = false;
 
 client.once('ready', async () => {
     const guild = await client.guilds.fetch(config.discord.guildId);
@@ -55,6 +56,13 @@ export async function sendAlert(content, alert, data) {
     return true;
 }
 
-setTimeout(() => {
-    client.login(config.discord.botAuthToken);
-}, 1000);
+export async function startDiscordBot( count = 0){
+    try {
+        await client.login(config.discord.botAuthToken);
+    } catch (error) {
+        if (count>3) throw new Error(`Discord Auth Error: ${error.message}`)
+        console.log(error);
+        await startDiscordBot(count+1);
+    }
+    isRunning = true
+}
