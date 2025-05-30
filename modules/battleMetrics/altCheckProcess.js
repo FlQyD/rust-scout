@@ -3,7 +3,7 @@ import config from "../../config/config.js";
 const ONE_DAY = 24 * 60 * 60 * 1000
 
 /**
- * 
+ *
  * @param {Number} bmId - battlemetrics ID of the player
  * @returns {Object} - playerProfile
  */
@@ -143,7 +143,7 @@ async function buildProfile({ bmId, lastBan }, alt = false) {
         });
 
         if (playerProfile.steamId === "unknown") {
-            const steamId = await getSteamId(bmId);        
+            const steamId = await getSteamId(bmId);
             playerProfile.steamId = steamId;
         }
 
@@ -185,9 +185,11 @@ async function getSteamId(bmId) {
     if (!config.flqydDev?.accessToken) return "unknown";
     try {
         const resp = await fetch(`https://rust-api.flqyd.dev/id/${bmId}?accessToken=${config.flqydDev.accessToken}`);
-        const data = await resp.json();        
-        if(data.data[0]?.steamId) return data.data[0]?.steamId;
-        return "unknown";
+        if (resp.status !== 200) return "unknown";
+
+        const data = await resp.json();
+        if (!data.data || data.data.length == 0) return "unknown";
+        return data.data[0].steamId;
     } catch (error) {
         console.error(error);
         return "unknown";
@@ -197,8 +199,10 @@ async function getHistoricFriends(steamId) {
     if (!config.flqydDev?.accessToken) return [];
     try {
         const resp = await fetch(`https://rust-api.flqyd.dev/steamFriends/${steamId}?accessToken=${config.flqydDev.accessToken}`)
-        const data = await resp.json();
+        if (resp.status != 200) return [];
 
+        const data = await resp.json();
+        if (!data.data | !data.data.friends) return [];
         return data.data.friends.map(item => item.steamId);
     } catch (error) {
         console.error(error);
