@@ -8,7 +8,11 @@ export default function getEmbed(data, alert) {
     if (embedContent.url) embed.setURL(embedContent.url)
     if (embedContent.description) embed.setDescription(embedContent.description);
     if (embedContent.color) embed.setColor(Number(embedContent.color));
-    if (embedContent.authorName || embedContent.authorIcon) {
+    if (embedContent.authorName && !embedContent.authorIcon) {
+        embed.setAuthor({
+            name: embedContent.authorName,
+        })
+    }else if(embedContent.authorName || embedContent.authorIcon) {
         embed.setAuthor({
             name: embedContent.authorName,
             iconURL: embedContent.authorIcon
