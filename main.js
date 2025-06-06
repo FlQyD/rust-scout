@@ -211,13 +211,12 @@ async function altChecker() {
         if (outcome.possibleAlts === 0) continue; //No alts was found
 
         const data = {
-            steamId: core.players[player]?.steamId,
-            bmId: core.players[player]?.bmId,
-            name: core.players[player]?.name,
+            steamId: outcome.main.steamId,
+            bmId: outcome.main.bmId,
+            name: outcome.main.names[0],
             count: outcome.possibleAlts,
         }
         const content = getContent("rgbFound");
-    
         sendAlert(content, alerts.rgbFound, data);
     }
 }
