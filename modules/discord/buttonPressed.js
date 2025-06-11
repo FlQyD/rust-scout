@@ -1,5 +1,5 @@
 import { ActionRowBuilder, EmbedBuilder } from "discord.js";
-import { altCheck, removePlayerFromTheWatchList } from "../../main.js";
+import { altCheck, getTimeString, removePlayerFromTheWatchList } from "../../main.js";
 import { pageSwitchButtonPushed, showPlayerProfile } from "./altCheckEmbed.js";
 
 /**
@@ -86,9 +86,11 @@ async function removedPressed(interaction) {
     await interaction.update({ embeds: [embed], components: [] });
 }
 async function showMorePressed(interaction) {
-    const customId = interaction.customId;
-
+    const customId = interaction.customId;    
     const bmId = customId.split("-")[2];
+
+    console.log(`${getTimeString()} | ${interaction.user.globalName}(${interaction.user.id}) requested alt data for ${bmId}`);
+
     if (!altCheck.playerData[bmId])
         return await interaction.reply({ content: 'Requested content has been deleted.', flags: 64 });
 
