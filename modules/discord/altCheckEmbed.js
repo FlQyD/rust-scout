@@ -1,4 +1,4 @@
-import { Client, GatewayIntentBits, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, time } from 'discord.js';
+import { EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, time } from 'discord.js';
 import { altCheck } from '../../main.js';
 
 
@@ -220,31 +220,48 @@ function levenshteinStringComparison(str1, str2) {
         changes: changes.reverse(),
     };
 }
+
+// [1;2m - bold
+// [2;36m - blue
+// [2;33m - gold
+// [2;31m - red
+// [0m - defaulting
 function getColoredNames(obj) {
     let str1Styled = '';
     let str2Styled = '';
 
+    let prevOp = null;
+    let section1 = "";
+    let section2 = "";
     obj.changes.forEach(({ char1, char2, op }) => {
-        if (op === 'match') {
-            str1Styled += `[1;2m[2;36m${char1}[0m`;
-            str2Styled += `[1;2m[2;36m${char2}[0m`;
-        } else if (op === 'substitute') {
-            str1Styled += `[1;2m[2;33m${char1}[0m`;
-            str2Styled += `[1;2m[2;33m${char2}[0m`;
-        } else if (op === 'delete') {
-            str1Styled += `[1;2m[2;31m${char1}[0m`;
-            str2Styled += `[1;2m[2;31m${char2}[0m`;
-        } else if (op === 'insert') {
-            str1Styled += `[1;2m[2;31m${char1}[0m`;
-            str2Styled += `[1;2m[2;31m${char2}[0m`;
+        if (prevOp != null && prevOp != op) {
+            str1Styled += getColoredSection(section1, prevOp);
+            str2Styled += getColoredSection(section2, prevOp);
+            section1 = "";
+            section2 = "";
         }
+        prevOp = op;
+        section1 += char1;
+        section2 += char2;
     });
+    str1Styled += getColoredSection(section1, prevOp);
+    str2Styled += getColoredSection(section2, prevOp);    
 
     return {
         str1: str1Styled,
         str2: str2Styled
     }
 }
+function getColoredSection(section, operation) {
+    if (operation === 'match') {
+        return `[1;2m[2;36m${section}[0m`;
+    } else if (operation === 'substitute') {
+        return `[1;2m[2;33m${section}[0m`;
+    } else if (operation === 'delete' || operation === 'insert') {
+        return `[1;2m[2;31m${section}[0m`;
+    }
+}
+
 const ONE_DAY = 24 * 60 * 60 * 1000;
 function getTimeString(timestamp) {
     let timeString = ""

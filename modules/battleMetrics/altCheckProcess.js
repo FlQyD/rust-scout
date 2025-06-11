@@ -5,7 +5,7 @@ const ONE_DAY = 24 * 60 * 60 * 1000
 /**
  *
  * @param {Number} bmId - battlemetrics ID of the player
- * @returns {Object} - playerProfile
+ * @returns {Object} - outcome {possibleAlts | main | alts}
  */
 export async function altCheckProcess(bmId) {
     const possibleAlts = await getEACBannedConnections(bmId);
@@ -119,9 +119,14 @@ async function getEACBannedConnections(bmId) {
         return "error";
     }
 }
-async function buildProfile({ bmId, lastBan }, alt = false) {
+async function buildProfile({ bmId, lastBan }, alt = false, count = 0) {
+    if (count > 2) return "error";
     try {
-        const resp = await fetch(`https://api.battlemetrics.com/players/${bmId}?version=^0.1.0&include=identifier&access_token=${config.battleMetrics.accessToken}`); const bmData = await resp.json();
+        const resp = await fetch(`https://api.battlemetrics.com/players/${bmId}?version=^0.1.0&include=identifier&access_token=${config.battleMetrics.accessToken}`); 
+        if (resp.status == 429) throw new Error("Rate Limit");
+        if (resp.status != 200) throw new Error(`Error while fetching ${bmId} to build profile. Status code: ${resp.status}`);
+        
+        const bmData = await resp.json();
 
         const playerProfile = {};
         playerProfile.bmId = bmId;
@@ -159,8 +164,9 @@ async function buildProfile({ bmId, lastBan }, alt = false) {
         }
         return playerProfile;
     } catch (error) {
-        console.error(error);
-        return "error"
+        if (error.message === "Rate Limit") await new Promise(r => {setTimeout(() => {r()}, 60000);})
+        console.error(`Build Profile Error: ${error}`);
+        return buildProfile({bmId, lastBan}, alt, count+1);
     }
 }
 
