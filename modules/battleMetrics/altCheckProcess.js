@@ -2,6 +2,41 @@ import config from "../../config/config.js";
 
 const ONE_DAY = 24 * 60 * 60 * 1000
 
+const namesToIgnore = [
+    ".",
+    "..",
+    "...",
+    "123",
+    "cheat",
+    "?",
+    "??",
+    "???",
+    ":)"
+];
+
+const commonNameParts = [
+    "survivor (",
+    "survivor",
+    "kiosk",
+    "banditcamp.com",
+    "banditcamp",
+    "rustchance.com",
+    "rustchance",
+    "rustypot.com",
+    "rustypot",
+    "rustclash.com",
+    "rustclash",
+    "cobaltlab.tech",
+    "cobaltlab",
+    "bloodrust",
+    "beamer",
+    "beam",
+    "123",
+    "rustypot",
+    "thing ",
+    "thing"
+];
+
 /**
  *
  * @param {Number} bmId - battlemetrics ID of the player
@@ -18,7 +53,6 @@ export async function altCheckProcess(bmId) {
         if (alt === "error") return "error";
 
         altProfiles.push(alt);
-        await new Promise(r => { setTimeout(() => { r() }, 1000); })
     }
     if (altProfiles.length > 0) {
         main = await buildProfile({ bmId });
@@ -71,16 +105,16 @@ function checkIfConnection(player1, player2) {
     }
     let highestMatch = 0;
     for (let i = 0; i < player1.names.length; i++) {
-        let name1 = player1.names[i];
-        if (name1.length < 4) continue;
-        if (name1.includes("Survivor")) name1 = name1.replaceAll("Survivor", "")
-        if (name1.includes("kiosk")) name1 = name1.replaceAll("kiosk", "")
+        let name1 = removeCommonNameParts(player1.names[i]);
+        if (!name1) continue;
+        if (name1.length < 3) continue;
+        if (isIgnoredName(name1)) continue;
         for (let j = 0; j < player2.names.length; j++) {
-            const name2 = player2.names[j];
-            if (name2.length < 4) continue;
+            const name2 = removeCommonNameParts(player2.names[j]);
+            if (!name2) continue;
+            if (name2.length < 3) continue;
+            if (isIgnoredName(name2)) continue;
 
-            if (name1.includes("Survivor")) name1 = name1.replaceAll("Survivor", "")
-            if (name1.includes("kiosk")) name1 = name1.replaceAll("kiosk", "")
             const dif = levenshteinDistance(name1, name2)
             const distPerc = Math.floor((1 - (dif / Math.max(name1.length, name2.length))) * 100);
             if (distPerc > highestMatch) highestMatch = distPerc
@@ -125,7 +159,10 @@ async function buildProfile({ bmId, lastBan }, alt = false, count = 0) {
         const resp = await fetch(`https://api.battlemetrics.com/players/${bmId}?version=^0.1.0&include=identifier&access_token=${config.battleMetrics.accessToken}`); 
         if (resp.status == 429) throw new Error("Rate Limit");
         if (resp.status != 200) throw new Error(`Error while fetching ${bmId} to build profile. Status code: ${resp.status}`);
-        
+        if (Number(resp.headers.get("x-rate-limit-remaining")) < 150) await new Promise(r => { setTimeout(() => { r() }, 1000); })
+        if (Number(resp.headers.get("x-rate-limit-remaining")) < 60) await new Promise(r => { setTimeout(() => { r() }, 10000); })
+        if (Number(resp.headers.get("x-rate-limit-remaining")) < 30) await new Promise(r => { setTimeout(() => { r() }, 60000); })
+
         const bmData = await resp.json();
 
         const playerProfile = {};
@@ -173,8 +210,8 @@ async function buildProfile({ bmId, lastBan }, alt = false, count = 0) {
 let lastSteamRateLimit = 0;
 async function getSteamFriends(steamId) {
     if (!config.steam.apiKey) return [];
-
     if (Date.now() - lastSteamRateLimit < ONE_DAY) return [];
+
     const resp = await fetch(`https://api.steampowered.com/ISteamUser/GetFriendList/v0001/?key=${config.steam.apiKey}&steamid=${steamId}&relationship=friend`)
 
     if (resp.status === 429) {
@@ -244,4 +281,25 @@ function getLastBan(bmId, bmData) {
         return banItem.attributes.metadata.rustBans.lastBan;
     }
     return "NaN";
+}
+
+function removeCommonNameParts(name) {
+    let lowerName = name.toLowerCase();
+
+    commonNameParts.forEach(part => {
+        let index;
+        while ((index = lowerName.indexOf(part)) !== -1) {
+            name = name.slice(0, index) + name.slice(index + part.length);
+            lowerName = name.toLowerCase();
+        }
+    });
+
+    return name.trim();
+}
+
+function isIgnoredName(name) {
+    for (let i = 0; i < namesToIgnore.length; i++) {
+        if (name.toLowerCase() === namesToIgnore[i].toLowerCase()) return true;
+    }
+    return false;
 }
